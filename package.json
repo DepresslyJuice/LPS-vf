@@ -1,0 +1,21 @@
+{
+  "name": "software-factory-courses-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo para una app de cursos con NestJS, React y Vite.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:backend": "npm run build -w @courses/shared && npm run start:dev -w @courses/backend",
+    "dev:frontend": "npm run build -w @courses/shared && npm run dev -w @courses/frontend",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
