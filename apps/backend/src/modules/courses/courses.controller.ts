@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { Course } from "@courses/shared";
 import {
+  ApiBadRequestResponse,
+  ApiBody,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -18,14 +20,20 @@ export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Get()
-  @ApiOperation({ summary: "Listar cursos" })
+  @ApiOperation({
+    summary: "Listar cursos",
+    description: "Devuelve todos los cursos disponibles.",
+  })
   @ApiOkResponse({ type: CourseResponseDto, isArray: true })
   findAll(): Course[] {
     return this.coursesService.findAll();
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Obtener curso por id" })
+  @ApiOperation({
+    summary: "Obtener curso por id",
+    description: "Devuelve el detalle individual de un curso.",
+  })
   @ApiParam({ name: "id", example: "course_react" })
   @ApiOkResponse({ type: CourseResponseDto })
   @ApiNotFoundResponse({ description: "Curso no encontrado" })
@@ -34,8 +42,13 @@ export class CoursesController {
   }
 
   @Post()
-  @ApiOperation({ summary: "Crear curso" })
+  @ApiOperation({
+    summary: "Crear curso",
+    description: "Registra un curso nuevo asociado a un profesor.",
+  })
+  @ApiBody({ type: CreateCourseDto })
   @ApiCreatedResponse({ type: CourseResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de curso invalidos" })
   create(@Body() input: CreateCourseDto): Course {
     return this.coursesService.create(input);
   }

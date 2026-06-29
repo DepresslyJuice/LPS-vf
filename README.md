@@ -20,6 +20,15 @@ packages/
 docs/          Arquitectura, convenciones y backlog
 ```
 
+## Documentacion
+
+- `docs/ENTERPRISE_DOCUMENTATION.md`: documentacion empresarial del sistema.
+- `docs/ARCHITECTURE.md`: arquitectura y decisiones tecnicas.
+- `docs/COMPONENTS.md`: componentes clave por capa.
+- `docs/API_CONTRACT.md`: contrato REST y ejemplos.
+- `docs/OPERATIONS_AND_QUALITY.md`: operacion, calidad y checklist.
+- `docs/BACKLOG.md`: backlog funcional y tecnico.
+
 ## Ejecucion
 
 ```bash

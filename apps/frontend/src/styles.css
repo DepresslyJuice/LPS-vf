@@ -79,6 +79,14 @@ h1 {
   margin-bottom: 16px;
 }
 
+.filterBar,
+.pageNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
 .metric,
 .section,
 .notice {
@@ -115,6 +123,20 @@ h1 {
   align-items: start;
 }
 
+.pageGrid {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.twoColumns {
+  grid-template-columns: 0.74fr 1.26fr;
+}
+
+.threeColumns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .section {
   padding: 18px;
 }
@@ -148,6 +170,12 @@ h1 {
   margin-bottom: 16px;
   border-bottom: 1px solid #e6ede8;
   padding-bottom: 16px;
+}
+
+.withoutDivider {
+  margin-bottom: 0;
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 .formRow {
@@ -193,17 +221,36 @@ button:hover {
   background: #155743;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .secondaryButton,
-.inlineButton {
+.inlineButton,
+.tabButton {
   border-color: #cfdcd5;
   background: #ffffff;
   color: #1c6f57;
 }
 
 .secondaryButton:hover,
-.inlineButton:hover {
+.inlineButton:hover,
+.tabButton:hover {
   border-color: #1c6f57;
   background: #edf7f3;
+}
+
+.tabButton {
+  width: auto;
+  min-width: 104px;
+  padding: 0 14px;
+}
+
+.tabButton.isActive {
+  border-color: #1c6f57;
+  background: #dff1ea;
+  color: #124837;
 }
 
 .secondaryButton {
@@ -221,6 +268,12 @@ button:hover {
   border: 1px solid #e2e9e5;
   border-radius: 8px;
   padding: 14px;
+}
+
+.item.isSelected,
+.row.isSelected {
+  border-color: #1c6f57;
+  background: #f2fbf7;
 }
 
 .item h3 {
@@ -255,8 +308,10 @@ dd {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 4px;
-  border-bottom: 1px solid #e9efeb;
-  padding-bottom: 10px;
+  border: 1px solid transparent;
+  border-bottom-color: #e9efeb;
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .row div {
@@ -266,8 +321,7 @@ dd {
 }
 
 .row:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
+  border-bottom-color: transparent;
 }
 
 .row span {
@@ -326,6 +380,18 @@ dd {
   margin-bottom: 0;
 }
 
+.helperText {
+  margin-bottom: 0;
+  color: #60706a;
+  font-size: 0.88rem;
+}
+
+.sectionLead {
+  min-height: 44px;
+  color: #60706a;
+  line-height: 1.45;
+}
+
 @media (max-width: 760px) {
   .appShell {
     width: min(100% - 24px, 1180px);
@@ -334,8 +400,16 @@ dd {
 
   .topbar,
   .contentGrid,
-  .metricsGrid {
+  .metricsGrid,
+  .twoColumns,
+  .threeColumns {
     grid-template-columns: 1fr;
+  }
+
+  .filterBar,
+  .pageNav,
+  .tabButton {
+    width: 100%;
   }
 
   .topbar {

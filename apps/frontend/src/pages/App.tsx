@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from "react";
 import type { Course, Student, Teacher } from "@courses/shared";
 import { Metric } from "../components/Metric";
 import { Section } from "../components/Section";
@@ -6,11 +13,17 @@ import { api } from "../services/api";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type EntityType = "course" | "student" | "teacher";
-type DetailSelection = { type: EntityType; id: string };
 type DetailEntity =
   | { type: "course"; data: Course }
   | { type: "student"; data: Student }
   | { type: "teacher"; data: Teacher };
+type Route =
+  | { page: "dashboard" }
+  | { page: "courses" }
+  | { page: "students" }
+  | { page: "teachers" }
+  | { page: "detail"; type: EntityType; id: string }
+  | { page: "notFound" };
 
 const entityLabels: Record<EntityType, string> = {
   course: "Curso",
@@ -18,16 +31,66 @@ const entityLabels: Record<EntityType, string> = {
   teacher: "Docente",
 };
 
+function parseRoute(pathname: string): Route {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (segments.length === 0) {
+    return { page: "dashboard" };
+  }
+
+  if (segments.length === 1) {
+    if (segments[0] === "courses") {
+      return { page: "courses" };
+    }
+
+    if (segments[0] === "students") {
+      return { page: "students" };
+    }
+
+    if (segments[0] === "teachers") {
+      return { page: "teachers" };
+    }
+  }
+
+  if (segments.length === 2) {
+    if (segments[0] === "courses") {
+      return { page: "detail", type: "course", id: segments[1] };
+    }
+
+    if (segments[0] === "students") {
+      return { page: "detail", type: "student", id: segments[1] };
+    }
+
+    if (segments[0] === "teachers") {
+      return { page: "detail", type: "teacher", id: segments[1] };
+    }
+  }
+
+  return { page: "notFound" };
+}
+
+function buildDetailPath(type: EntityType, id: string): string {
+  const basePath = {
+    course: "courses",
+    student: "students",
+    teacher: "teachers",
+  }[type];
+
+  return `/${basePath}/${id}`;
+}
+
 export function App() {
+  const [route, setRoute] = useState<Route>(() =>
+    parseRoute(window.location.pathname),
+  );
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
-  const [selectedDetail, setSelectedDetail] = useState<DetailSelection | null>(
-    null,
-  );
   const [detailEntity, setDetailEntity] = useState<DetailEntity | null>(null);
   const [detailState, setDetailState] = useState<LoadState>("idle");
+  const [submitState, setSubmitState] = useState<EntityType | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [studentForm, setStudentForm] = useState({ name: "", email: "" });
   const [teacherForm, setTeacherForm] = useState({
     name: "",
@@ -40,6 +103,15 @@ export function App() {
     teacherId: "teacher_luis",
     capacity: 25,
   });
+
+  useEffect(() => {
+    function syncRoute() {
+      setRoute(parseRoute(window.location.pathname));
+    }
+
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, []);
 
   useEffect(() => {
     setLoadState("loading");
@@ -58,7 +130,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (!selectedDetail) {
+    if (route.page !== "detail") {
       setDetailEntity(null);
       setDetailState("idle");
       return;
@@ -66,16 +138,16 @@ export function App() {
 
     setDetailState("loading");
     const detailRequest =
-      selectedDetail.type === "course"
+      route.type === "course"
         ? api
-            .getCourse(selectedDetail.id)
+            .getCourse(route.id)
             .then((data): DetailEntity => ({ type: "course", data }))
-        : selectedDetail.type === "student"
+        : route.type === "student"
           ? api
-              .getStudent(selectedDetail.id)
+              .getStudent(route.id)
               .then((data): DetailEntity => ({ type: "student", data }))
           : api
-              .getTeacher(selectedDetail.id)
+              .getTeacher(route.id)
               .then((data): DetailEntity => ({ type: "teacher", data }));
 
     detailRequest
@@ -87,7 +159,7 @@ export function App() {
         setDetailEntity(null);
         setDetailState("error");
       });
-  }, [selectedDetail]);
+  }, [route]);
 
   const teacherById = useMemo(
     () => new Map(teachers.map((teacher) => [teacher.id, teacher])),
@@ -99,46 +171,76 @@ export function App() {
   );
 
   const isLoading = loadState === "loading" || loadState === "idle";
+  const canCreateCourse = teachers.length > 0 && courseForm.teacherId !== "";
+
+  function navigate(path: string) {
+    window.history.pushState({}, "", path);
+    setRoute(parseRoute(path));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function isActive(path: string): boolean {
+    return window.location.pathname === path;
+  }
 
   async function handleCreateStudent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const created = await api.createStudent(studentForm);
-    setStudents((current) => [...current, created]);
-    setStudentForm({ name: "", email: "" });
-    setSelectedDetail({ type: "student", id: created.id });
+    setFormError(null);
+    setSubmitState("student");
+
+    try {
+      const created = await api.createStudent(studentForm);
+      setStudents((current) => [...current, created]);
+      setStudentForm({ name: "", email: "" });
+      navigate(buildDetailPath("student", created.id));
+    } catch {
+      setFormError("No se pudo crear el estudiante. Revisa los datos.");
+    } finally {
+      setSubmitState(null);
+    }
   }
 
   async function handleCreateTeacher(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const created = await api.createTeacher(teacherForm);
-    setTeachers((current) => [...current, created]);
-    setTeacherForm({ name: "", email: "", specialty: "" });
-    setCourseForm((current) => ({ ...current, teacherId: created.id }));
-    setSelectedDetail({ type: "teacher", id: created.id });
+    setFormError(null);
+    setSubmitState("teacher");
+
+    try {
+      const created = await api.createTeacher(teacherForm);
+      setTeachers((current) => [...current, created]);
+      setTeacherForm({ name: "", email: "", specialty: "" });
+      setCourseForm((current) => ({ ...current, teacherId: created.id }));
+      navigate(buildDetailPath("teacher", created.id));
+    } catch {
+      setFormError("No se pudo crear el docente. Revisa los datos.");
+    } finally {
+      setSubmitState(null);
+    }
   }
 
   async function handleCreateCourse(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const created = await api.createCourse(courseForm);
-    setCourses((current) => [...current, created]);
-    setCourseForm({
-      title: "",
-      description: "",
-      teacherId: teachers[0]?.id ?? "",
-      capacity: 25,
-    });
-    setSelectedDetail({ type: "course", id: created.id });
+    setFormError(null);
+    setSubmitState("course");
+
+    try {
+      const created = await api.createCourse(courseForm);
+      setCourses((current) => [...current, created]);
+      setCourseForm({
+        title: "",
+        description: "",
+        teacherId: teachers[0]?.id ?? "",
+        capacity: 25,
+      });
+      navigate(buildDetailPath("course", created.id));
+    } catch {
+      setFormError("No se pudo crear el curso. Revisa los datos.");
+    } finally {
+      setSubmitState(null);
+    }
   }
 
   function renderDetail() {
-    if (!selectedDetail) {
-      return (
-        <div className="emptyDetail">
-          Selecciona un registro para ver su informacion individual.
-        </div>
-      );
-    }
-
     if (detailState === "loading") {
       return <div className="emptyDetail">Cargando detalle...</div>;
     }
@@ -261,11 +363,36 @@ export function App() {
         <span className={`status status-${loadState}`}>{loadState}</span>
       </header>
 
-      <section className="metricsGrid">
-        <Metric label="Estudiantes" value={students.length} />
-        <Metric label="Docentes" value={teachers.length} />
-        <Metric label="Cursos" value={courses.length} />
-      </section>
+      <nav className="pageNav" aria-label="Paginas principales">
+        <button
+          className={`tabButton ${isActive("/") ? "isActive" : ""}`}
+          onClick={() => navigate("/")}
+          type="button"
+        >
+          Inicio
+        </button>
+        <button
+          className={`tabButton ${isActive("/courses") ? "isActive" : ""}`}
+          onClick={() => navigate("/courses")}
+          type="button"
+        >
+          Cursos
+        </button>
+        <button
+          className={`tabButton ${isActive("/students") ? "isActive" : ""}`}
+          onClick={() => navigate("/students")}
+          type="button"
+        >
+          Estudiantes
+        </button>
+        <button
+          className={`tabButton ${isActive("/teachers") ? "isActive" : ""}`}
+          onClick={() => navigate("/teachers")}
+          type="button"
+        >
+          Docentes
+        </button>
+      </nav>
 
       {loadState === "error" ? (
         <div className="notice">
@@ -274,215 +401,453 @@ export function App() {
         </div>
       ) : null}
 
-      <div className="contentGrid">
-        <Section title="Detalle individual">{renderDetail()}</Section>
+      {formError ? <div className="notice">{formError}</div> : null}
 
-        <Section title="Cursos">
-          <form className="entityForm" onSubmit={handleCreateCourse}>
-            <input
-              minLength={3}
-              onChange={(event) =>
-                setCourseForm((current) => ({
-                  ...current,
-                  title: event.target.value,
-                }))
-              }
-              placeholder="Nombre del curso"
-              required
-              value={courseForm.title}
-            />
-            <textarea
-              minLength={10}
-              onChange={(event) =>
-                setCourseForm((current) => ({
-                  ...current,
-                  description: event.target.value,
-                }))
-              }
-              placeholder="Descripcion"
-              required
-              value={courseForm.description}
-            />
-            <div className="formRow">
-              <select
-                onChange={(event) =>
-                  setCourseForm((current) => ({
-                    ...current,
-                    teacherId: event.target.value,
-                  }))
+      {route.page === "dashboard" ? (
+        <DashboardPage
+          courses={courses}
+          navigate={navigate}
+          students={students}
+          teachers={teachers}
+        />
+      ) : null}
+
+      {route.page === "courses" ? (
+        <CoursesPage
+          canCreateCourse={canCreateCourse}
+          courseForm={courseForm}
+          courses={courses}
+          handleCreateCourse={handleCreateCourse}
+          isLoading={isLoading}
+          navigate={navigate}
+          setCourseForm={setCourseForm}
+          submitState={submitState}
+          teacherById={teacherById}
+          teachers={teachers}
+        />
+      ) : null}
+
+      {route.page === "students" ? (
+        <StudentsPage
+          handleCreateStudent={handleCreateStudent}
+          isLoading={isLoading}
+          navigate={navigate}
+          setStudentForm={setStudentForm}
+          studentForm={studentForm}
+          students={students}
+          submitState={submitState}
+        />
+      ) : null}
+
+      {route.page === "teachers" ? (
+        <TeachersPage
+          handleCreateTeacher={handleCreateTeacher}
+          isLoading={isLoading}
+          navigate={navigate}
+          setTeacherForm={setTeacherForm}
+          submitState={submitState}
+          teacherForm={teacherForm}
+          teachers={teachers}
+        />
+      ) : null}
+
+      {route.page === "detail" ? (
+        <section className="pageGrid">
+          <Section
+            action={
+              <button
+                className="inlineButton"
+                onClick={() =>
+                  navigate(
+                    route.type === "course"
+                      ? "/courses"
+                      : route.type === "student"
+                        ? "/students"
+                        : "/teachers",
+                  )
                 }
-                required
-                value={courseForm.teacherId}
+                type="button"
               >
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                min={1}
-                onChange={(event) =>
-                  setCourseForm((current) => ({
-                    ...current,
-                    capacity: Number(event.target.value),
-                  }))
-                }
-                required
-                type="number"
-                value={courseForm.capacity}
-              />
+                Volver
+              </button>
+            }
+            title="Detalle individual"
+          >
+            {renderDetail()}
+          </Section>
+        </section>
+      ) : null}
+
+      {route.page === "notFound" ? (
+        <section className="pageGrid">
+          <Section title="Pagina no encontrada">
+            <div className="emptyDetail">
+              La ruta actual no existe. Vuelve al inicio para continuar.
             </div>
-            <button type="submit">Crear curso</button>
-          </form>
-
-          <div className="list">
-            {isLoading ? <p>Cargando cursos...</p> : null}
-            {courses.map((course) => (
-              <article className="item" key={course.id}>
-                <div>
-                  <h3>{course.title}</h3>
-                  <p>{course.description}</p>
-                </div>
-                <dl>
-                  <div>
-                    <dt>Docente</dt>
-                    <dd>
-                      {teacherById.get(course.teacherId)?.name ??
-                        course.teacherId}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Cupos</dt>
-                    <dd>{course.capacity}</dd>
-                  </div>
-                </dl>
-                <button
-                  className="secondaryButton"
-                  onClick={() =>
-                    setSelectedDetail({ type: "course", id: course.id })
-                  }
-                  type="button"
-                >
-                  Ver detalle
-                </button>
-              </article>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Estudiantes">
-          <form className="entityForm" onSubmit={handleCreateStudent}>
-            <input
-              minLength={2}
-              onChange={(event) =>
-                setStudentForm((current) => ({
-                  ...current,
-                  name: event.target.value,
-                }))
-              }
-              placeholder="Nombre"
-              required
-              value={studentForm.name}
-            />
-            <input
-              onChange={(event) =>
-                setStudentForm((current) => ({
-                  ...current,
-                  email: event.target.value,
-                }))
-              }
-              placeholder="correo@dominio.com"
-              required
-              type="email"
-              value={studentForm.email}
-            />
-            <button type="submit">Crear estudiante</button>
-          </form>
-
-          <div className="tableLike">
-            {students.map((student) => (
-              <div className="row" key={student.id}>
-                <div>
-                  <strong>{student.name}</strong>
-                  <span>{student.email}</span>
-                </div>
-                <button
-                  className="inlineButton"
-                  onClick={() =>
-                    setSelectedDetail({ type: "student", id: student.id })
-                  }
-                  type="button"
-                >
-                  Ver
-                </button>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Docentes">
-          <form className="entityForm" onSubmit={handleCreateTeacher}>
-            <input
-              minLength={2}
-              onChange={(event) =>
-                setTeacherForm((current) => ({
-                  ...current,
-                  name: event.target.value,
-                }))
-              }
-              placeholder="Nombre"
-              required
-              value={teacherForm.name}
-            />
-            <input
-              onChange={(event) =>
-                setTeacherForm((current) => ({
-                  ...current,
-                  email: event.target.value,
-                }))
-              }
-              placeholder="correo@dominio.com"
-              required
-              type="email"
-              value={teacherForm.email}
-            />
-            <input
-              minLength={2}
-              onChange={(event) =>
-                setTeacherForm((current) => ({
-                  ...current,
-                  specialty: event.target.value,
-                }))
-              }
-              placeholder="Especialidad"
-              required
-              value={teacherForm.specialty}
-            />
-            <button type="submit">Crear docente</button>
-          </form>
-
-          <div className="tableLike">
-            {teachers.map((teacher) => (
-              <div className="row" key={teacher.id}>
-                <div>
-                  <strong>{teacher.name}</strong>
-                  <span>{teacher.specialty}</span>
-                </div>
-                <button
-                  className="inlineButton"
-                  onClick={() =>
-                    setSelectedDetail({ type: "teacher", id: teacher.id })
-                  }
-                  type="button"
-                >
-                  Ver
-                </button>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
+          </Section>
+        </section>
+      ) : null}
     </main>
+  );
+}
+
+interface DashboardPageProps {
+  courses: Course[];
+  students: Student[];
+  teachers: Teacher[];
+  navigate: (path: string) => void;
+}
+
+function DashboardPage({
+  courses,
+  students,
+  teachers,
+  navigate,
+}: DashboardPageProps) {
+  return (
+    <>
+      <section className="metricsGrid">
+        <Metric label="Estudiantes" value={students.length} />
+        <Metric label="Docentes" value={teachers.length} />
+        <Metric label="Cursos" value={courses.length} />
+      </section>
+
+      <section className="pageGrid threeColumns">
+        <Section title="Cursos">
+          <p className="sectionLead">Administra cursos y revisa cupos.</p>
+          <button onClick={() => navigate("/courses")} type="button">
+            Abrir cursos
+          </button>
+        </Section>
+        <Section title="Estudiantes">
+          <p className="sectionLead">Registra estudiantes y consulta detalles.</p>
+          <button onClick={() => navigate("/students")} type="button">
+            Abrir estudiantes
+          </button>
+        </Section>
+        <Section title="Docentes">
+          <p className="sectionLead">Gestiona docentes y sus asignaciones.</p>
+          <button onClick={() => navigate("/teachers")} type="button">
+            Abrir docentes
+          </button>
+        </Section>
+      </section>
+    </>
+  );
+}
+
+interface CoursesPageProps {
+  canCreateCourse: boolean;
+  courseForm: {
+    title: string;
+    description: string;
+    teacherId: string;
+    capacity: number;
+  };
+  courses: Course[];
+  handleCreateCourse: (event: FormEvent<HTMLFormElement>) => void;
+  isLoading: boolean;
+  navigate: (path: string) => void;
+  setCourseForm: Dispatch<
+    SetStateAction<{
+      title: string;
+      description: string;
+      teacherId: string;
+      capacity: number;
+    }>
+  >;
+  submitState: EntityType | null;
+  teacherById: Map<string, Teacher>;
+  teachers: Teacher[];
+}
+
+function CoursesPage({
+  canCreateCourse,
+  courseForm,
+  courses,
+  handleCreateCourse,
+  isLoading,
+  navigate,
+  setCourseForm,
+  submitState,
+  teacherById,
+  teachers,
+}: CoursesPageProps) {
+  return (
+    <section className="pageGrid twoColumns">
+      <Section title="Crear curso">
+        <form className="entityForm withoutDivider" onSubmit={handleCreateCourse}>
+          <input
+            minLength={3}
+            onChange={(event) =>
+              setCourseForm((current) => ({
+                ...current,
+                title: event.target.value,
+              }))
+            }
+            placeholder="Nombre del curso"
+            required
+            value={courseForm.title}
+          />
+          <textarea
+            minLength={10}
+            onChange={(event) =>
+              setCourseForm((current) => ({
+                ...current,
+                description: event.target.value,
+              }))
+            }
+            placeholder="Descripcion"
+            required
+            value={courseForm.description}
+          />
+          <div className="formRow">
+            <select
+              disabled={teachers.length === 0}
+              onChange={(event) =>
+                setCourseForm((current) => ({
+                  ...current,
+                  teacherId: event.target.value,
+                }))
+              }
+              required
+              value={courseForm.teacherId}
+            >
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.name}
+                </option>
+              ))}
+            </select>
+            <input
+              min={1}
+              onChange={(event) =>
+                setCourseForm((current) => ({
+                  ...current,
+                  capacity: Number(event.target.value),
+                }))
+              }
+              required
+              type="number"
+              value={courseForm.capacity}
+            />
+          </div>
+          {teachers.length === 0 ? (
+            <p className="helperText">Crea un docente antes de crear cursos.</p>
+          ) : null}
+          <button disabled={!canCreateCourse || submitState === "course"} type="submit">
+            {submitState === "course" ? "Creando..." : "Crear curso"}
+          </button>
+        </form>
+      </Section>
+
+      <Section title="Cursos">
+        <div className="list">
+          {isLoading ? <p>Cargando cursos...</p> : null}
+          {courses.map((course) => (
+            <article className="item" key={course.id}>
+              <div>
+                <h3>{course.title}</h3>
+                <p>{course.description}</p>
+              </div>
+              <dl>
+                <div>
+                  <dt>Docente</dt>
+                  <dd>{teacherById.get(course.teacherId)?.name ?? course.teacherId}</dd>
+                </div>
+                <div>
+                  <dt>Cupos</dt>
+                  <dd>{course.capacity}</dd>
+                </div>
+              </dl>
+              <button
+                className="secondaryButton"
+                onClick={() => navigate(buildDetailPath("course", course.id))}
+                type="button"
+              >
+                Ver detalle
+              </button>
+            </article>
+          ))}
+        </div>
+      </Section>
+    </section>
+  );
+}
+
+interface StudentsPageProps {
+  handleCreateStudent: (event: FormEvent<HTMLFormElement>) => void;
+  isLoading: boolean;
+  navigate: (path: string) => void;
+  setStudentForm: Dispatch<
+    SetStateAction<{
+      name: string;
+      email: string;
+    }>
+  >;
+  studentForm: { name: string; email: string };
+  students: Student[];
+  submitState: EntityType | null;
+}
+
+function StudentsPage({
+  handleCreateStudent,
+  isLoading,
+  navigate,
+  setStudentForm,
+  studentForm,
+  students,
+  submitState,
+}: StudentsPageProps) {
+  return (
+    <section className="pageGrid twoColumns">
+      <Section title="Crear estudiante">
+        <form className="entityForm withoutDivider" onSubmit={handleCreateStudent}>
+          <input
+            minLength={2}
+            onChange={(event) =>
+              setStudentForm((current) => ({
+                ...current,
+                name: event.target.value,
+              }))
+            }
+            placeholder="Nombre"
+            required
+            value={studentForm.name}
+          />
+          <input
+            onChange={(event) =>
+              setStudentForm((current) => ({
+                ...current,
+                email: event.target.value,
+              }))
+            }
+            placeholder="correo@dominio.com"
+            required
+            type="email"
+            value={studentForm.email}
+          />
+          <button disabled={submitState === "student"} type="submit">
+            {submitState === "student" ? "Creando..." : "Crear estudiante"}
+          </button>
+        </form>
+      </Section>
+
+      <Section title="Estudiantes">
+        <div className="tableLike">
+          {isLoading ? <p>Cargando estudiantes...</p> : null}
+          {students.map((student) => (
+            <div className="row" key={student.id}>
+              <div>
+                <strong>{student.name}</strong>
+                <span>{student.email}</span>
+              </div>
+              <button
+                className="inlineButton"
+                onClick={() => navigate(buildDetailPath("student", student.id))}
+                type="button"
+              >
+                Ver
+              </button>
+            </div>
+          ))}
+        </div>
+      </Section>
+    </section>
+  );
+}
+
+interface TeachersPageProps {
+  handleCreateTeacher: (event: FormEvent<HTMLFormElement>) => void;
+  isLoading: boolean;
+  navigate: (path: string) => void;
+  setTeacherForm: Dispatch<
+    SetStateAction<{
+      name: string;
+      email: string;
+      specialty: string;
+    }>
+  >;
+  submitState: EntityType | null;
+  teacherForm: { name: string; email: string; specialty: string };
+  teachers: Teacher[];
+}
+
+function TeachersPage({
+  handleCreateTeacher,
+  isLoading,
+  navigate,
+  setTeacherForm,
+  submitState,
+  teacherForm,
+  teachers,
+}: TeachersPageProps) {
+  return (
+    <section className="pageGrid twoColumns">
+      <Section title="Crear docente">
+        <form className="entityForm withoutDivider" onSubmit={handleCreateTeacher}>
+          <input
+            minLength={2}
+            onChange={(event) =>
+              setTeacherForm((current) => ({
+                ...current,
+                name: event.target.value,
+              }))
+            }
+            placeholder="Nombre"
+            required
+            value={teacherForm.name}
+          />
+          <input
+            onChange={(event) =>
+              setTeacherForm((current) => ({
+                ...current,
+                email: event.target.value,
+              }))
+            }
+            placeholder="correo@dominio.com"
+            required
+            type="email"
+            value={teacherForm.email}
+          />
+          <input
+            minLength={2}
+            onChange={(event) =>
+              setTeacherForm((current) => ({
+                ...current,
+                specialty: event.target.value,
+              }))
+            }
+            placeholder="Especialidad"
+            required
+            value={teacherForm.specialty}
+          />
+          <button disabled={submitState === "teacher"} type="submit">
+            {submitState === "teacher" ? "Creando..." : "Crear docente"}
+          </button>
+        </form>
+      </Section>
+
+      <Section title="Docentes">
+        <div className="tableLike">
+          {isLoading ? <p>Cargando docentes...</p> : null}
+          {teachers.map((teacher) => (
+            <div className="row" key={teacher.id}>
+              <div>
+                <strong>{teacher.name}</strong>
+                <span>{teacher.specialty}</span>
+              </div>
+              <button
+                className="inlineButton"
+                onClick={() => navigate(buildDetailPath("teacher", teacher.id))}
+                type="button"
+              >
+                Ver
+              </button>
+            </div>
+          ))}
+        </div>
+      </Section>
+    </section>
   );
 }
