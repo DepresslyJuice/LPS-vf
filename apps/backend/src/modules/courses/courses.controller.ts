@@ -25,7 +25,7 @@ export class CoursesController {
     description: "Devuelve todos los cursos disponibles.",
   })
   @ApiOkResponse({ type: CourseResponseDto, isArray: true })
-  findAll(): Course[] {
+  async findAll(): Promise<Course[]> {
     return this.coursesService.findAll();
   }
 
@@ -37,7 +37,7 @@ export class CoursesController {
   @ApiParam({ name: "id", example: "course_react" })
   @ApiOkResponse({ type: CourseResponseDto })
   @ApiNotFoundResponse({ description: "Curso no encontrado" })
-  findById(@Param("id") id: string): Course {
+  async findById(@Param("id") id: string): Promise<Course> {
     return this.coursesService.findById(id);
   }
 
@@ -49,7 +49,7 @@ export class CoursesController {
   @ApiBody({ type: CreateCourseDto })
   @ApiCreatedResponse({ type: CourseResponseDto })
   @ApiBadRequestResponse({ description: "Datos de curso invalidos" })
-  create(@Body() input: CreateCourseDto): Course {
+  async create(@Body() input: CreateCourseDto): Promise<Course> {
     return this.coursesService.create(input);
   }
 }

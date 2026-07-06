@@ -1,36 +1,48 @@
 import { Injectable } from "@nestjs/common";
 import { CreateTeacherInput, Teacher } from "@courses/shared";
-import { createId } from "../../common/id";
+import { SupabaseService } from "../../database/supabase.service";
 
 @Injectable()
 export class TeachersRepository {
-  private readonly teachers = new Map<string, Teacher>([
-    [
-      "teacher_luis",
-      {
-        id: "teacher_luis",
-        name: "Luis Andrade",
-        email: "luis.andrade@example.com",
-        specialty: "Desarrollo web",
-      },
-    ],
-  ]);
+  constructor(private readonly supabase: SupabaseService) {}
 
-  findAll(): Teacher[] {
-    return [...this.teachers.values()];
+  async findAll(): Promise<Teacher[]> {
+    const { data, error } = await this.supabase
+      .from<Teacher>("teachers")
+      .select("*");
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
   }
 
-  findById(id: string): Teacher | undefined {
-    return this.teachers.get(id);
+  async findById(id: string): Promise<Teacher | undefined> {
+    const { data, error } = await this.supabase
+      .from<Teacher>("teachers")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
   }
 
-  create(input: CreateTeacherInput): Teacher {
-    const teacher: Teacher = {
-      id: createId("teacher"),
-      ...input,
-    };
+  async create(input: CreateTeacherInput): Promise<Teacher> {
+    const { data, error } = await this.supabase
+      .from<Teacher>("teachers")
+      .insert(input)
+      .select()
+      .single();
 
-    this.teachers.set(teacher.id, teacher);
-    return teacher;
+    if (error) {
+      throw error;
+    }
+
+    return data as Teacher;
   }
 }

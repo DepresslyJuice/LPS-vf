@@ -25,7 +25,7 @@ export class TeachersController {
     description: "Devuelve todos los profesores registrados.",
   })
   @ApiOkResponse({ type: TeacherResponseDto, isArray: true })
-  findAll(): Teacher[] {
+  async findAll(): Promise<Teacher[]> {
     return this.teachersService.findAll();
   }
 
@@ -37,7 +37,7 @@ export class TeachersController {
   @ApiParam({ name: "id", example: "teacher_luis" })
   @ApiOkResponse({ type: TeacherResponseDto })
   @ApiNotFoundResponse({ description: "Profesor no encontrado" })
-  findById(@Param("id") id: string): Teacher {
+  async findById(@Param("id") id: string): Promise<Teacher> {
     return this.teachersService.findById(id);
   }
 
@@ -49,7 +49,7 @@ export class TeachersController {
   @ApiBody({ type: CreateTeacherDto })
   @ApiCreatedResponse({ type: TeacherResponseDto })
   @ApiBadRequestResponse({ description: "Datos de profesor invalidos" })
-  create(@Body() input: CreateTeacherDto): Teacher {
+  async create(@Body() input: CreateTeacherDto): Promise<Teacher> {
     return this.teachersService.create(input);
   }
 }

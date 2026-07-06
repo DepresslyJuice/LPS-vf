@@ -1,37 +1,48 @@
 import { Injectable } from "@nestjs/common";
 import { Course, CreateCourseInput } from "@courses/shared";
-import { createId } from "../../common/id";
+import { SupabaseService } from "../../database/supabase.service";
 
 @Injectable()
 export class CoursesRepository {
-  private readonly courses = new Map<string, Course>([
-    [
-      "course_react",
-      {
-        id: "course_react",
-        title: "React con Vite",
-        description: "Curso practico para construir interfaces modernas.",
-        teacherId: "teacher_luis",
-        capacity: 30,
-      },
-    ],
-  ]);
+  constructor(private readonly supabase: SupabaseService) {}
 
-  findAll(): Course[] {
-    return [...this.courses.values()];
+  async findAll(): Promise<Course[]> {
+    const { data, error } = await this.supabase
+      .from<Course>("courses")
+      .select("*");
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
   }
 
-  findById(id: string): Course | undefined {
-    return this.courses.get(id);
+  async findById(id: string): Promise<Course | undefined> {
+    const { data, error } = await this.supabase
+      .from<Course>("courses")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
   }
 
-  create(input: CreateCourseInput): Course {
-    const course: Course = {
-      id: createId("course"),
-      ...input,
-    };
+  async create(input: CreateCourseInput): Promise<Course> {
+    const { data, error } = await this.supabase
+      .from<Course>("courses")
+      .insert(input)
+      .select()
+      .single();
 
-    this.courses.set(course.id, course);
-    return course;
+    if (error) {
+      throw error;
+    }
+
+    return data as Course;
   }
 }

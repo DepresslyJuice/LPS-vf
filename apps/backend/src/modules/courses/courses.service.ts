@@ -6,12 +6,12 @@ import { CoursesRepository } from "./courses.repository";
 export class CoursesService {
   constructor(private readonly coursesRepository: CoursesRepository) {}
 
-  findAll(): Course[] {
+  async findAll(): Promise<Course[]> {
     return this.coursesRepository.findAll();
   }
 
-  findById(id: string): Course {
-    const course = this.coursesRepository.findById(id);
+  async findById(id: string): Promise<Course> {
+    const course = await this.coursesRepository.findById(id);
 
     if (!course) {
       throw new NotFoundException(`Course ${id} was not found`);
@@ -20,7 +20,7 @@ export class CoursesService {
     return course;
   }
 
-  create(input: CreateCourseInput): Course {
+  async create(input: CreateCourseInput): Promise<Course> {
     return this.coursesRepository.create(input);
   }
 }

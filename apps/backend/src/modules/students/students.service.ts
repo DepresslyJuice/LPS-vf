@@ -6,12 +6,12 @@ import { StudentsRepository } from "./students.repository";
 export class StudentsService {
   constructor(private readonly studentsRepository: StudentsRepository) {}
 
-  findAll(): Student[] {
+  async findAll(): Promise<Student[]> {
     return this.studentsRepository.findAll();
   }
 
-  findById(id: string): Student {
-    const student = this.studentsRepository.findById(id);
+  async findById(id: string): Promise<Student> {
+    const student = await this.studentsRepository.findById(id);
 
     if (!student) {
       throw new NotFoundException(`Student ${id} was not found`);
@@ -20,7 +20,7 @@ export class StudentsService {
     return student;
   }
 
-  create(input: CreateStudentInput): Student {
+  async create(input: CreateStudentInput): Promise<Student> {
     return this.studentsRepository.create(input);
   }
 }
