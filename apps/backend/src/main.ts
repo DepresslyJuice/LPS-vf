@@ -1,14 +1,24 @@
+import "dotenv/config";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+
+const DEFAULT_CORS_ORIGINS = "http://localhost:5173";
+
+function getCorsOrigins() {
+  return (process.env.CORS_ORIGINS ?? DEFAULT_CORS_ORIGINS)
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: ["http://localhost:5173"],
+    origin: getCorsOrigins(),
   });
   app.useGlobalPipes(
     new ValidationPipe({

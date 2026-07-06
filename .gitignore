@@ -1,7 +1,18 @@
-node_modules
-dist
-coverage
+node_modules/
+dist/
+coverage/
+
+# Environment files with real secrets. Keep *.example files committed.
 .env
-.env.local
-.DS_Store
+.env.*
+!.env.example
+
+# Local build/cache output.
+.turbo/
+.vite/
+*.tsbuildinfo
+
+# Logs and OS/editor noise.
 *.log
+.DS_Store
+Thumbs.db
