@@ -1,6 +1,10 @@
 import type {
   Course,
+  CourseResource,
+  CourseSection,
   CreateCourseInput,
+  CreateCourseResourceInput,
+  CreateCourseSectionInput,
   CreateStudentInput,
   CreateTeacherInput,
   Student,
@@ -64,6 +68,42 @@ export const api = {
     request<Course>("/courses", {
       method: "POST",
       body: JSON.stringify(input),
+    }),
+  getCourseSections: (courseId: string) =>
+    request<CourseSection[]>(`/courses/${courseId}/sections`),
+  createCourseSection: (
+    courseId: string,
+    input: Omit<CreateCourseSectionInput, "courseId">,
+  ) =>
+    request<CourseSection>(`/courses/${courseId}/sections`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteCourseSection: (sectionId: string) =>
+    fetch(`${API_URL}/courses/sections/${sectionId}`, {
+      method: "DELETE",
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    }),
+  getSectionResources: (sectionId: string) =>
+    request<CourseResource[]>(`/courses/sections/${sectionId}/resources`),
+  createSectionResource: (
+    sectionId: string,
+    input: Omit<CreateCourseResourceInput, "sectionId">,
+  ) =>
+    request<CourseResource>(`/courses/sections/${sectionId}/resources`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteCourseResource: (resourceId: string) =>
+    fetch(`${API_URL}/courses/resources/${resourceId}`, {
+      method: "DELETE",
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
     }),
   getCourseStudents: (courseId: string) =>
     request<Student[]>(`/courses/${courseId}/students`),

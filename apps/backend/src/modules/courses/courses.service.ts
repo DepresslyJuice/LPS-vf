@@ -5,9 +5,15 @@ import {
 } from "@nestjs/common";
 import {
   Course,
+  CourseResource,
+  CourseSection,
   CreateCourseInput,
+  CreateCourseResourceInput,
+  CreateCourseSectionInput,
   Student,
   UpdateCourseInput,
+  UpdateCourseResourceInput,
+  UpdateCourseSectionInput,
 } from "@courses/shared";
 import { StudentsService } from "../students/students.service";
 import { TeachersService } from "../teachers/teachers.service";
@@ -106,5 +112,82 @@ export class CoursesService {
     return students.filter((student) =>
       student.enrolledCourseIds.includes(courseId),
     );
+  }
+
+  async findSections(courseId: string): Promise<CourseSection[]> {
+    await this.findById(courseId);
+    return this.coursesRepository.findSections(courseId);
+  }
+
+  async findSectionById(sectionId: string): Promise<CourseSection> {
+    const section = await this.coursesRepository.findSectionById(sectionId);
+
+    if (!section) {
+      throw new NotFoundException(`Course section ${sectionId} was not found`);
+    }
+
+    return section;
+  }
+
+  async createSection(
+    courseId: string,
+    input: Omit<CreateCourseSectionInput, "courseId">,
+  ): Promise<CourseSection> {
+    await this.findById(courseId);
+    return this.coursesRepository.createSection({ ...input, courseId });
+  }
+
+  async updateSection(
+    sectionId: string,
+    input: UpdateCourseSectionInput,
+  ): Promise<CourseSection> {
+    const section = await this.coursesRepository.updateSection(
+      sectionId,
+      input,
+    );
+
+    if (!section) {
+      throw new NotFoundException(`Course section ${sectionId} was not found`);
+    }
+
+    return section;
+  }
+
+  async deleteSection(sectionId: string): Promise<void> {
+    await this.findSectionById(sectionId);
+    await this.coursesRepository.deleteSection(sectionId);
+  }
+
+  async findResources(sectionId: string): Promise<CourseResource[]> {
+    await this.findSectionById(sectionId);
+    return this.coursesRepository.findResources(sectionId);
+  }
+
+  async createResource(
+    sectionId: string,
+    input: Omit<CreateCourseResourceInput, "sectionId">,
+  ): Promise<CourseResource> {
+    await this.findSectionById(sectionId);
+    return this.coursesRepository.createResource({ ...input, sectionId });
+  }
+
+  async updateResource(
+    resourceId: string,
+    input: UpdateCourseResourceInput,
+  ): Promise<CourseResource> {
+    const resource = await this.coursesRepository.updateResource(
+      resourceId,
+      input,
+    );
+
+    if (!resource) {
+      throw new NotFoundException(`Course resource ${resourceId} was not found`);
+    }
+
+    return resource;
+  }
+
+  async deleteResource(resourceId: string): Promise<void> {
+    await this.coursesRepository.deleteResource(resourceId);
   }
 }

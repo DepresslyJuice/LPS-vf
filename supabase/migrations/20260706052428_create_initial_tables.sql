@@ -19,7 +19,9 @@ create table if not exists public.courses (
   title text not null,
   description text not null,
   "teacherId" text not null references public.teachers(id) on delete restrict,
-  capacity integer not null check (capacity > 0)
+  capacity integer not null check (capacity > 0),
+  status text not null default 'draft'
+    check (status in ('draft', 'published', 'archived'))
 );
 
 alter table public.students enable row level security;

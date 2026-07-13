@@ -180,7 +180,8 @@ Body:
   "title": "NestJS Fundamentals",
   "description": "Aprende a crear APIs robustas con NestJS y TypeScript.",
   "teacherId": "teacher_luis",
-  "capacity": 30
+  "capacity": 30,
+  "status": "draft"
 }
 ```
 
@@ -225,6 +226,128 @@ Respuestas:
 - `404`: curso o estudiante no encontrado.
 - `409`: estudiante no matriculado en el curso.
 
+### Listar secciones de curso
+
+```http
+GET /api/courses/{id}/sections
+```
+
+Respuestas:
+
+- `200`: secciones del curso.
+- `404`: curso no encontrado.
+
+### Crear seccion de curso
+
+```http
+POST /api/courses/{id}/sections
+```
+
+Body:
+
+```json
+{
+  "title": "Semana 1: Introduccion",
+  "summary": "Conceptos base y preparacion del entorno.",
+  "order": 1
+}
+```
+
+Respuestas:
+
+- `201`: seccion creada.
+- `400`: datos invalidos.
+- `404`: curso no encontrado.
+
+### Actualizar seccion de curso
+
+```http
+PATCH /api/courses/sections/{sectionId}
+```
+
+Respuestas:
+
+- `200`: seccion actualizada.
+- `400`: datos invalidos.
+- `404`: seccion no encontrada.
+
+### Eliminar seccion de curso
+
+```http
+DELETE /api/courses/sections/{sectionId}
+```
+
+Respuestas:
+
+- `204`: seccion eliminada.
+- `404`: seccion no encontrada.
+
+### Listar recursos de seccion
+
+```http
+GET /api/courses/sections/{sectionId}/resources
+```
+
+Respuestas:
+
+- `200`: recursos de la seccion.
+- `404`: seccion no encontrada.
+
+### Crear recurso de seccion
+
+```http
+POST /api/courses/sections/{sectionId}/resources
+```
+
+Body para enlace:
+
+```json
+{
+  "title": "Guia de instalacion",
+  "type": "link",
+  "url": "https://example.com/guia"
+}
+```
+
+Body para texto:
+
+```json
+{
+  "title": "Nota inicial",
+  "type": "text",
+  "content": "Lee esta nota antes de iniciar."
+}
+```
+
+Respuestas:
+
+- `201`: recurso creado.
+- `400`: datos invalidos.
+- `404`: seccion no encontrada.
+
+### Actualizar recurso
+
+```http
+PATCH /api/courses/resources/{resourceId}
+```
+
+Respuestas:
+
+- `200`: recurso actualizado.
+- `400`: datos invalidos.
+- `404`: recurso no encontrado.
+
+### Eliminar recurso
+
+```http
+DELETE /api/courses/resources/{resourceId}
+```
+
+Respuestas:
+
+- `204`: recurso eliminado.
+- `404`: recurso no encontrado.
+
 ### Actualizar curso
 
 ```http
@@ -236,7 +359,8 @@ Body parcial:
 ```json
 {
   "title": "NestJS Advanced",
-  "capacity": 40
+  "capacity": 40,
+  "status": "published"
 }
 ```
 

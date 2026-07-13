@@ -112,6 +112,19 @@ export function CoursesPage({
               value={courseForm.capacity}
             />
           </div>
+          <select
+            onChange={(event) =>
+              setCourseForm((current) => ({
+                ...current,
+                status: event.target.value as Course["status"],
+              }))
+            }
+            value={courseForm.status}
+          >
+            <option value="draft">Borrador</option>
+            <option value="published">Publicado</option>
+            <option value="archived">Archivado</option>
+          </select>
           {teachers.length === 0 ? (
             <p className="helperText">Crea un docente antes de crear cursos.</p>
           ) : null}
@@ -199,6 +212,19 @@ export function CoursesPage({
                       value={editCourseForm.capacity}
                     />
                   </div>
+                  <select
+                    onChange={(event) =>
+                      setEditCourseForm((current) => ({
+                        ...current,
+                        status: event.target.value as Course["status"],
+                      }))
+                    }
+                    value={editCourseForm.status}
+                  >
+                    <option value="draft">Borrador</option>
+                    <option value="published">Publicado</option>
+                    <option value="archived">Archivado</option>
+                  </select>
                   <div className="buttonRow">
                     <button
                       disabled={
@@ -224,7 +250,16 @@ export function CoursesPage({
               ) : (
                 <>
                   <div>
-                    <h3>{course.title}</h3>
+                    <div className="titleRow">
+                      <h3>{course.title}</h3>
+                      <span className={`statusBadge statusBadge-${course.status}`}>
+                        {course.status === "draft"
+                          ? "Borrador"
+                          : course.status === "published"
+                            ? "Publicado"
+                            : "Archivado"}
+                      </span>
+                    </div>
                     <p>{course.description}</p>
                   </div>
                   <dl>

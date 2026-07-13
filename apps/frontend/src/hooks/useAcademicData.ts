@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import type { Course, Student, Teacher } from "@courses/shared";
+import type { Course, CourseResource, CourseSection, Student, Teacher } from "@courses/shared";
 import { buildDetailPath, type Route } from "../routing/routes";
 import { api } from "../services/api";
 import type {
   CourseActionState,
+  CourseContentActionState,
   CourseFormState,
+  CourseResourceFormState,
+  CourseSectionFormState,
   DetailEntity,
   EntityType,
   LoadState,
@@ -26,6 +29,8 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   const [submitState, setSubmitState] = useState<EntityType | null>(null);
   const [courseActionState, setCourseActionState] =
     useState<CourseActionState>(null);
+  const [courseContentActionState, setCourseContentActionState] =
+    useState<CourseContentActionState>(null);
   const [studentActionState, setStudentActionState] =
     useState<StudentActionState>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -34,6 +39,10 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [enrollmentStudentId, setEnrollmentStudentId] = useState("");
   const [enrollmentState, setEnrollmentState] = useState(false);
+  const [courseSections, setCourseSections] = useState<CourseSection[]>([]);
+  const [courseResources, setCourseResources] = useState<
+    Record<string, CourseResource[]>
+  >({});
   const [studentForm, setStudentForm] = useState({ name: "", email: "" });
   const [editStudentForm, setEditStudentForm] = useState({
     name: "",
@@ -49,13 +58,66 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     description: "",
     teacherId: "teacher_luis",
     capacity: 25,
+    status: "draft",
   });
   const [editCourseForm, setEditCourseForm] = useState<CourseFormState>({
     title: "",
     description: "",
     teacherId: "",
     capacity: 1,
+    status: "draft",
   });
+  const [courseSectionForm, setCourseSectionForm] =
+    useState<CourseSectionFormState>({
+      title: "",
+      summary: "",
+      order: 1,
+    });
+  const [courseResourceForms, setCourseResourceForms] = useState<
+    Record<string, CourseResourceFormState>
+  >({});
+
+  function getResourceForm(sectionId: string): CourseResourceFormState {
+    return (
+      courseResourceForms[sectionId] ?? {
+        title: "",
+        type: "link",
+        url: "",
+        content: "",
+      }
+    );
+  }
+
+  function setCourseResourceForm(
+    sectionId: string,
+    updater:
+      | CourseResourceFormState
+      | ((current: CourseResourceFormState) => CourseResourceFormState),
+  ) {
+    setCourseResourceForms((current) => {
+      const currentForm =
+        current[sectionId] ?? {
+          title: "",
+          type: "link",
+          url: "",
+          content: "",
+        };
+      return {
+        ...current,
+        [sectionId]:
+          typeof updater === "function" ? updater(currentForm) : updater,
+      };
+    });
+  }
+
+  function resetCourseResourceForm(sectionId: string) {
+    setCourseResourceForm(sectionId, {
+      title: "",
+      type: "link",
+      url: "",
+      content: "",
+    });
+  }
 
   useEffect(() => {
     setLoadState("loading");
@@ -102,6 +164,35 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
       .catch(() => {
         setDetailEntity(null);
         setDetailState("error");
+      });
+  }, [route]);
+
+  useEffect(() => {
+    if (route.page !== "detail" || route.type !== "course") {
+      setCourseSections([]);
+      setCourseResources({});
+      return;
+    }
+
+    api
+      .getCourseSections(route.id)
+      .then(async (sections) => {
+        setCourseSections(sections);
+        const resourceEntries = await Promise.all(
+          sections.map(async (section) => [
+            section.id,
+            await api.getSectionResources(section.id),
+          ] as const),
+        );
+        setCourseResources(Object.fromEntries(resourceEntries));
+        setCourseSectionForm((current) => ({
+          ...current,
+          order: sections.length + 1,
+        }));
+      })
+      .catch(() => {
+        setCourseSections([]);
+        setCourseResources({});
       });
   }, [route]);
 
@@ -242,6 +333,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
         description: "",
         teacherId: teachers[0]?.id ?? "",
         capacity: 25,
+        status: "draft",
       });
       navigate(buildDetailPath("course", created.id));
     } catch {
@@ -260,6 +352,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
       description: course.description,
       teacherId: course.teacherId,
       capacity: course.capacity,
+      status: course.status,
     });
   }
 
@@ -387,13 +480,102 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     }
   }
 
+  async function handleCreateCourseSection(course: Course) {
+    setFormError(null);
+    setCourseContentActionState({ type: "create-section" });
+
+    try {
+      const created = await api.createCourseSection(course.id, courseSectionForm);
+      setCourseSections((current) => [...current, created]);
+      setCourseResources((current) => ({ ...current, [created.id]: [] }));
+      setCourseSectionForm({
+        title: "",
+        summary: "",
+        order: courseSections.length + 2,
+      });
+    } catch {
+      setFormError("No se pudo crear la seccion del curso.");
+    } finally {
+      setCourseContentActionState(null);
+    }
+  }
+
+  async function handleDeleteCourseSection(section: CourseSection) {
+    setFormError(null);
+    setCourseContentActionState({ type: "delete-section", id: section.id });
+
+    try {
+      await api.deleteCourseSection(section.id);
+      setCourseSections((current) =>
+        current.filter((currentSection) => currentSection.id !== section.id),
+      );
+      setCourseResources((current) => {
+        const next = { ...current };
+        delete next[section.id];
+        return next;
+      });
+    } catch {
+      setFormError("No se pudo eliminar la seccion del curso.");
+    } finally {
+      setCourseContentActionState(null);
+    }
+  }
+
+  async function handleCreateCourseResource(section: CourseSection) {
+    const form = getResourceForm(section.id);
+    setFormError(null);
+    setCourseContentActionState({ type: "create-resource", id: section.id });
+
+    try {
+      const created = await api.createSectionResource(section.id, {
+        title: form.title,
+        type: form.type,
+        url: form.type === "link" ? form.url : undefined,
+        content: form.type === "text" ? form.content : undefined,
+      });
+      setCourseResources((current) => ({
+        ...current,
+        [section.id]: [...(current[section.id] ?? []), created],
+      }));
+      resetCourseResourceForm(section.id);
+    } catch {
+      setFormError("No se pudo crear el recurso de la seccion.");
+    } finally {
+      setCourseContentActionState(null);
+    }
+  }
+
+  async function handleDeleteCourseResource(resource: CourseResource) {
+    setFormError(null);
+    setCourseContentActionState({ type: "delete-resource", id: resource.id });
+
+    try {
+      await api.deleteCourseResource(resource.id);
+      setCourseResources((current) => ({
+        ...current,
+        [resource.sectionId]: (current[resource.sectionId] ?? []).filter(
+          (currentResource) => currentResource.id !== resource.id,
+        ),
+      }));
+    } catch {
+      setFormError("No se pudo eliminar el recurso.");
+    } finally {
+      setCourseContentActionState(null);
+    }
+  }
+
   return {
     canCreateCourse,
     cancelEditingStudent,
     cancelEditingCourse,
     courseActionState,
+    courseContentActionState,
     courseById,
     courseForm,
+    courseResourceForms,
+    courseResources,
+    courseSectionForm,
+    courseSections,
     courseTeacherFilter,
     courses,
     detailEntity,
@@ -411,6 +593,10 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     handleCreateTeacher,
     handleDeleteCourse,
     handleDeleteStudent,
+    handleCreateCourseResource,
+    handleCreateCourseSection,
+    handleDeleteCourseResource,
+    handleDeleteCourseSection,
     handleEnrollStudent,
     handleUnenrollStudent,
     handleUpdateCourse,
@@ -418,6 +604,8 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     isLoading,
     loadState,
     setCourseForm,
+    setCourseResourceForm,
+    setCourseSectionForm,
     setCourseTeacherFilter,
     setEditCourseForm,
     setEditStudentForm,

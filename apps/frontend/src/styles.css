@@ -318,6 +318,43 @@ button:disabled {
   font-size: 1rem;
 }
 
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titleRow h3 {
+  margin-bottom: 6px;
+}
+
+.statusBadge {
+  flex: 0 0 auto;
+  border: 1px solid #cfdcd5;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #f6faf8;
+  color: #3a4b45;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.statusBadge-draft {
+  color: #6b5a00;
+  background: #fff8d9;
+}
+
+.statusBadge-published {
+  color: #12613d;
+  background: #e2f7ec;
+}
+
+.statusBadge-archived {
+  color: #6a3440;
+  background: #f8e8ec;
+}
+
 .item p {
   color: #51615c;
   line-height: 1.45;
@@ -420,9 +457,23 @@ dd {
   padding-top: 14px;
 }
 
+.courseContentPanel {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid #e9efeb;
+  padding-top: 14px;
+}
+
+.courseContentPanel h4,
 .enrollmentPanel h4 {
   margin: 0;
   font-size: 1rem;
+}
+
+.resourceList {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
 }
 
 .compactNotice {
@@ -492,6 +543,10 @@ dd {
 
   .compactSelect {
     width: 100%;
+  }
+
+  .titleRow {
+    display: grid;
   }
 
   .section:first-child {

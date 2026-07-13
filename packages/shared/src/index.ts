@@ -1,4 +1,6 @@
 export type EntityId = string;
+export type CourseStatus = "draft" | "published" | "archived";
+export type CourseResourceType = "link" | "text";
 
 export interface Student {
   id: EntityId;
@@ -20,6 +22,24 @@ export interface Course {
   description: string;
   teacherId: EntityId;
   capacity: number;
+  status: CourseStatus;
+}
+
+export interface CourseSection {
+  id: EntityId;
+  courseId: EntityId;
+  title: string;
+  summary: string;
+  order: number;
+}
+
+export interface CourseResource {
+  id: EntityId;
+  sectionId: EntityId;
+  title: string;
+  type: CourseResourceType;
+  url?: string;
+  content?: string;
 }
 
 export type CreateStudentInput = Omit<Student, "id" | "enrolledCourseIds">;
@@ -27,3 +47,11 @@ export type UpdateStudentInput = Partial<CreateStudentInput>;
 export type CreateTeacherInput = Omit<Teacher, "id">;
 export type CreateCourseInput = Omit<Course, "id">;
 export type UpdateCourseInput = Partial<CreateCourseInput>;
+export type CreateCourseSectionInput = Omit<CourseSection, "id">;
+export type UpdateCourseSectionInput = Partial<
+  Omit<CourseSection, "id" | "courseId">
+>;
+export type CreateCourseResourceInput = Omit<CourseResource, "id">;
+export type UpdateCourseResourceInput = Partial<
+  Omit<CourseResource, "id" | "sectionId">
+>;

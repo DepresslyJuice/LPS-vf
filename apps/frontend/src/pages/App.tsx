@@ -98,15 +98,26 @@ export function App() {
       {route.page === "detail" ? (
         <DetailPage
           courseById={academic.courseById}
+          courseContentActionState={academic.courseContentActionState}
+          courseResourceForms={academic.courseResourceForms}
+          courseResources={academic.courseResources}
+          courseSectionForm={academic.courseSectionForm}
+          courseSections={academic.courseSections}
           courses={academic.courses}
           detailEntity={academic.detailEntity}
           detailState={academic.detailState}
           enrollmentState={academic.enrollmentState}
           enrollmentStudentId={academic.enrollmentStudentId}
+          handleCreateCourseResource={academic.handleCreateCourseResource}
+          handleCreateCourseSection={academic.handleCreateCourseSection}
+          handleDeleteCourseResource={academic.handleDeleteCourseResource}
+          handleDeleteCourseSection={academic.handleDeleteCourseSection}
           handleEnrollStudent={academic.handleEnrollStudent}
           handleUnenrollStudent={academic.handleUnenrollStudent}
           navigate={navigate}
           route={route}
+          setCourseResourceForm={academic.setCourseResourceForm}
+          setCourseSectionForm={academic.setCourseSectionForm}
           setEnrollmentStudentId={academic.setEnrollmentStudentId}
           studentActionState={academic.studentActionState}
           students={academic.students}

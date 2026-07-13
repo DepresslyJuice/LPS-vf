@@ -1,5 +1,15 @@
 import { Injectable } from "@nestjs/common";
-import { Course, CreateCourseInput, UpdateCourseInput } from "@courses/shared";
+import {
+  Course,
+  CourseResource,
+  CourseSection,
+  CreateCourseInput,
+  CreateCourseResourceInput,
+  CreateCourseSectionInput,
+  UpdateCourseInput,
+  UpdateCourseResourceInput,
+  UpdateCourseSectionInput,
+} from "@courses/shared";
 import { SupabaseService } from "../../database/supabase.service";
 
 @Injectable()
@@ -71,6 +81,138 @@ export class CoursesRepository {
   async delete(id: string): Promise<void> {
     const { error } = await this.supabase
       .from<Course>("courses")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async findSections(courseId: string): Promise<CourseSection[]> {
+    const { data, error } = await this.supabase
+      .from<CourseSection>("course_sections")
+      .select("*")
+      .eq("courseId", courseId)
+      .order("order", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
+  }
+
+  async findSectionById(id: string): Promise<CourseSection | undefined> {
+    const { data, error } = await this.supabase
+      .from<CourseSection>("course_sections")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
+  async createSection(
+    input: CreateCourseSectionInput,
+  ): Promise<CourseSection> {
+    const { data, error } = await this.supabase
+      .from<CourseSection>("course_sections")
+      .insert(input)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data as CourseSection;
+  }
+
+  async updateSection(
+    id: string,
+    input: UpdateCourseSectionInput,
+  ): Promise<CourseSection | undefined> {
+    const { data, error } = await this.supabase
+      .from<CourseSection>("course_sections")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
+  async deleteSection(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from<CourseSection>("course_sections")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async findResources(sectionId: string): Promise<CourseResource[]> {
+    const { data, error } = await this.supabase
+      .from<CourseResource>("course_resources")
+      .select("*")
+      .eq("sectionId", sectionId)
+      .order("title", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
+  }
+
+  async createResource(
+    input: CreateCourseResourceInput,
+  ): Promise<CourseResource> {
+    const { data, error } = await this.supabase
+      .from<CourseResource>("course_resources")
+      .insert(input)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data as CourseResource;
+  }
+
+  async updateResource(
+    id: string,
+    input: UpdateCourseResourceInput,
+  ): Promise<CourseResource | undefined> {
+    const { data, error } = await this.supabase
+      .from<CourseResource>("course_resources")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
+  async deleteResource(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from<CourseResource>("course_resources")
       .delete()
       .eq("id", id);
 

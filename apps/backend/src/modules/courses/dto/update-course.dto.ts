@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsInt, IsOptional, IsString, Min, MinLength } from "class-validator";
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  MinLength,
+} from "class-validator";
 
 export class UpdateCourseDto {
   @ApiPropertyOptional({ example: "NestJS Advanced", minLength: 3 })
@@ -27,4 +34,12 @@ export class UpdateCourseDto {
   @IsInt()
   @Min(1)
   capacity?: number;
+
+  @ApiPropertyOptional({
+    example: "published",
+    enum: ["draft", "published", "archived"],
+  })
+  @IsOptional()
+  @IsIn(["draft", "published", "archived"])
+  status?: "draft" | "published" | "archived";
 }

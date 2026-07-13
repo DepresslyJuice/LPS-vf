@@ -17,4 +17,7 @@ export class CourseResponseDto {
 
   @ApiProperty({ example: 30, minimum: 1 })
   capacity!: number;
+
+  @ApiProperty({ example: "published", enum: ["draft", "published", "archived"] })
+  status!: "draft" | "published" | "archived";
 }

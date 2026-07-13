@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { Course, Student } from "@courses/shared";
+import { Course, CourseResource, CourseSection, Student } from "@courses/shared";
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -28,6 +28,12 @@ import { CreateCourseDto } from "./dto/create-course.dto";
 import { CourseResponseDto } from "./dto/course-response.dto";
 import { UpdateCourseDto } from "./dto/update-course.dto";
 import { StudentResponseDto } from "../students/dto/student-response.dto";
+import { CreateCourseSectionDto } from "./dto/create-course-section.dto";
+import { UpdateCourseSectionDto } from "./dto/update-course-section.dto";
+import { CourseSectionResponseDto } from "./dto/course-section-response.dto";
+import { CreateCourseResourceDto } from "./dto/create-course-resource.dto";
+import { UpdateCourseResourceDto } from "./dto/update-course-resource.dto";
+import { CourseResourceResponseDto } from "./dto/course-resource-response.dto";
 
 @ApiTags("courses")
 @Controller("courses")
@@ -74,6 +80,35 @@ export class CoursesController {
     return this.coursesService.findEnrolledStudents(id);
   }
 
+  @Get(":id/sections")
+  @ApiOperation({
+    summary: "Listar secciones del curso",
+    description: "Devuelve las secciones o temas de un curso.",
+  })
+  @ApiParam({ name: "id", example: "course_react" })
+  @ApiOkResponse({ type: CourseSectionResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: "Curso no encontrado" })
+  async findSections(@Param("id") id: string): Promise<CourseSection[]> {
+    return this.coursesService.findSections(id);
+  }
+
+  @Post(":id/sections")
+  @ApiOperation({
+    summary: "Crear seccion de curso",
+    description: "Crea una seccion o tema dentro de un curso.",
+  })
+  @ApiParam({ name: "id", example: "course_react" })
+  @ApiBody({ type: CreateCourseSectionDto })
+  @ApiCreatedResponse({ type: CourseSectionResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de seccion invalidos" })
+  @ApiNotFoundResponse({ description: "Curso no encontrado" })
+  async createSection(
+    @Param("id") id: string,
+    @Body() input: CreateCourseSectionDto,
+  ): Promise<CourseSection> {
+    return this.coursesService.createSection(id, input);
+  }
+
   @Post()
   @ApiOperation({
     summary: "Crear curso",
@@ -103,6 +138,97 @@ export class CoursesController {
     @Param("studentId") studentId: string,
   ): Promise<Student> {
     return this.coursesService.enrollStudent(courseId, studentId);
+  }
+
+  @Get("sections/:sectionId/resources")
+  @ApiOperation({
+    summary: "Listar recursos de seccion",
+    description: "Devuelve recursos simples asociados a una seccion.",
+  })
+  @ApiParam({ name: "sectionId", example: "section_1" })
+  @ApiOkResponse({ type: CourseResourceResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: "Seccion no encontrada" })
+  async findResources(
+    @Param("sectionId") sectionId: string,
+  ): Promise<CourseResource[]> {
+    return this.coursesService.findResources(sectionId);
+  }
+
+  @Post("sections/:sectionId/resources")
+  @ApiOperation({
+    summary: "Crear recurso de seccion",
+    description: "Crea un recurso tipo texto o enlace dentro de una seccion.",
+  })
+  @ApiParam({ name: "sectionId", example: "section_1" })
+  @ApiBody({ type: CreateCourseResourceDto })
+  @ApiCreatedResponse({ type: CourseResourceResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de recurso invalidos" })
+  @ApiNotFoundResponse({ description: "Seccion no encontrada" })
+  async createResource(
+    @Param("sectionId") sectionId: string,
+    @Body() input: CreateCourseResourceDto,
+  ): Promise<CourseResource> {
+    return this.coursesService.createResource(sectionId, input);
+  }
+
+  @Patch("sections/:sectionId")
+  @ApiOperation({
+    summary: "Actualizar seccion",
+    description: "Actualiza parcialmente una seccion de curso.",
+  })
+  @ApiParam({ name: "sectionId", example: "section_1" })
+  @ApiBody({ type: UpdateCourseSectionDto })
+  @ApiOkResponse({ type: CourseSectionResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de seccion invalidos" })
+  @ApiNotFoundResponse({ description: "Seccion no encontrada" })
+  async updateSection(
+    @Param("sectionId") sectionId: string,
+    @Body() input: UpdateCourseSectionDto,
+  ): Promise<CourseSection> {
+    return this.coursesService.updateSection(sectionId, input);
+  }
+
+  @Delete("sections/:sectionId")
+  @HttpCode(204)
+  @ApiOperation({
+    summary: "Eliminar seccion",
+    description: "Elimina una seccion y sus recursos asociados.",
+  })
+  @ApiParam({ name: "sectionId", example: "section_1" })
+  @ApiNoContentResponse({ description: "Seccion eliminada" })
+  @ApiNotFoundResponse({ description: "Seccion no encontrada" })
+  async deleteSection(@Param("sectionId") sectionId: string): Promise<void> {
+    await this.coursesService.deleteSection(sectionId);
+  }
+
+  @Patch("resources/:resourceId")
+  @ApiOperation({
+    summary: "Actualizar recurso",
+    description: "Actualiza parcialmente un recurso de curso.",
+  })
+  @ApiParam({ name: "resourceId", example: "resource_1" })
+  @ApiBody({ type: UpdateCourseResourceDto })
+  @ApiOkResponse({ type: CourseResourceResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de recurso invalidos" })
+  @ApiNotFoundResponse({ description: "Recurso no encontrado" })
+  async updateResource(
+    @Param("resourceId") resourceId: string,
+    @Body() input: UpdateCourseResourceDto,
+  ): Promise<CourseResource> {
+    return this.coursesService.updateResource(resourceId, input);
+  }
+
+  @Delete("resources/:resourceId")
+  @HttpCode(204)
+  @ApiOperation({
+    summary: "Eliminar recurso",
+    description: "Elimina un recurso de curso.",
+  })
+  @ApiParam({ name: "resourceId", example: "resource_1" })
+  @ApiNoContentResponse({ description: "Recurso eliminado" })
+  @ApiNotFoundResponse({ description: "Recurso no encontrado" })
+  async deleteResource(@Param("resourceId") resourceId: string): Promise<void> {
+    await this.coursesService.deleteResource(resourceId);
   }
 
   @Delete(":courseId/students/:studentId")

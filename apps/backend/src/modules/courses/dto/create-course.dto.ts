@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsString, Min, MinLength } from "class-validator";
+import { IsIn, IsInt, IsString, Min, MinLength } from "class-validator";
 
 export class CreateCourseDto {
   @ApiProperty({ example: "NestJS Fundamentals", minLength: 3 })
@@ -23,4 +23,8 @@ export class CreateCourseDto {
   @IsInt()
   @Min(1)
   capacity!: number;
+
+  @ApiProperty({ example: "draft", enum: ["draft", "published", "archived"] })
+  @IsIn(["draft", "published", "archived"])
+  status!: "draft" | "published" | "archived";
 }
