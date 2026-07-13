@@ -120,6 +120,10 @@ Respuestas:
 GET /api/courses
 ```
 
+Query params opcionales:
+
+- `teacherId`: filtra cursos por docente.
+
 ### Obtener curso
 
 ```http
@@ -152,6 +156,38 @@ Respuestas:
 
 - `201`: curso creado.
 - `400`: datos invalidos.
+
+### Actualizar curso
+
+```http
+PATCH /api/courses/{id}
+```
+
+Body parcial:
+
+```json
+{
+  "title": "NestJS Advanced",
+  "capacity": 40
+}
+```
+
+Respuestas:
+
+- `200`: curso actualizado.
+- `400`: datos invalidos.
+- `404`: curso no encontrado.
+
+### Eliminar curso
+
+```http
+DELETE /api/courses/{id}
+```
+
+Respuestas:
+
+- `204`: curso eliminado.
+- `404`: curso no encontrado.
 
 ## Convenciones de Error
 

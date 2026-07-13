@@ -25,3 +25,4 @@ export interface Course {
 export type CreateStudentInput = Omit<Student, "id" | "enrolledCourseIds">;
 export type CreateTeacherInput = Omit<Teacher, "id">;
 export type CreateCourseInput = Omit<Course, "id">;
+export type UpdateCourseInput = Partial<CreateCourseInput>;

@@ -10,6 +10,7 @@ coverage/
 # Local build/cache output.
 .turbo/
 .vite/
+.supabase-cli/
 *.tsbuildinfo
 
 # Logs and OS/editor noise.

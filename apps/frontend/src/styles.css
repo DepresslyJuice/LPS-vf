@@ -228,7 +228,8 @@ button:disabled {
 
 .secondaryButton,
 .inlineButton,
-.tabButton {
+.tabButton,
+.dangerButton {
   border-color: #cfdcd5;
   background: #ffffff;
   color: #1c6f57;
@@ -239,6 +240,15 @@ button:disabled {
 .tabButton:hover {
   border-color: #1c6f57;
   background: #edf7f3;
+}
+
+.dangerButton {
+  color: #9c2f20;
+}
+
+.dangerButton:hover {
+  border-color: #c94b38;
+  background: #fff0ec;
 }
 
 .tabButton {
@@ -257,11 +267,27 @@ button:disabled {
   margin-top: 14px;
 }
 
+.noMargin {
+  margin-top: 0;
+}
+
+.buttonRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
 .inlineButton {
   width: auto;
   min-width: 64px;
   padding: 0 12px;
   justify-self: end;
+}
+
+.compactSelect {
+  width: min(220px, 100%);
+  min-height: 38px;
 }
 
 .item {
@@ -430,6 +456,14 @@ dd {
 
   .inlineButton {
     justify-self: stretch;
+    width: 100%;
+  }
+
+  .buttonRow {
+    grid-template-columns: 1fr;
+  }
+
+  .compactSelect {
     width: 100%;
   }
 

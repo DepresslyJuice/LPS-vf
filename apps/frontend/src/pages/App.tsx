@@ -13,6 +13,17 @@ import { api } from "../services/api";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type EntityType = "course" | "student" | "teacher";
+type CourseFormState = {
+  title: string;
+  description: string;
+  teacherId: string;
+  capacity: number;
+};
+type CourseActionState =
+  | { type: "create" }
+  | { type: "update"; id: string }
+  | { type: "delete"; id: string }
+  | null;
 type DetailEntity =
   | { type: "course"; data: Course }
   | { type: "student"; data: Student }
@@ -90,18 +101,28 @@ export function App() {
   const [detailEntity, setDetailEntity] = useState<DetailEntity | null>(null);
   const [detailState, setDetailState] = useState<LoadState>("idle");
   const [submitState, setSubmitState] = useState<EntityType | null>(null);
+  const [courseActionState, setCourseActionState] =
+    useState<CourseActionState>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [courseTeacherFilter, setCourseTeacherFilter] = useState("");
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [studentForm, setStudentForm] = useState({ name: "", email: "" });
   const [teacherForm, setTeacherForm] = useState({
     name: "",
     email: "",
     specialty: "",
   });
-  const [courseForm, setCourseForm] = useState({
+  const [courseForm, setCourseForm] = useState<CourseFormState>({
     title: "",
     description: "",
     teacherId: "teacher_luis",
     capacity: 25,
+  });
+  const [editCourseForm, setEditCourseForm] = useState<CourseFormState>({
+    title: "",
+    description: "",
+    teacherId: "",
+    capacity: 1,
   });
 
   useEffect(() => {
@@ -172,6 +193,13 @@ export function App() {
 
   const isLoading = loadState === "loading" || loadState === "idle";
   const canCreateCourse = teachers.length > 0 && courseForm.teacherId !== "";
+  const filteredCourses = useMemo(
+    () =>
+      courseTeacherFilter
+        ? courses.filter((course) => course.teacherId === courseTeacherFilter)
+        : courses,
+    [courseTeacherFilter, courses],
+  );
 
   function navigate(path: string) {
     window.history.pushState({}, "", path);
@@ -222,6 +250,7 @@ export function App() {
     event.preventDefault();
     setFormError(null);
     setSubmitState("course");
+    setCourseActionState({ type: "create" });
 
     try {
       const created = await api.createCourse(courseForm);
@@ -237,6 +266,76 @@ export function App() {
       setFormError("No se pudo crear el curso. Revisa los datos.");
     } finally {
       setSubmitState(null);
+      setCourseActionState(null);
+    }
+  }
+
+  function startEditingCourse(course: Course) {
+    setFormError(null);
+    setEditingCourseId(course.id);
+    setEditCourseForm({
+      title: course.title,
+      description: course.description,
+      teacherId: course.teacherId,
+      capacity: course.capacity,
+    });
+  }
+
+  function cancelEditingCourse() {
+    setEditingCourseId(null);
+  }
+
+  async function handleUpdateCourse(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!editingCourseId) {
+      return;
+    }
+
+    setFormError(null);
+    setCourseActionState({ type: "update", id: editingCourseId });
+
+    try {
+      const updated = await api.updateCourse(editingCourseId, editCourseForm);
+      setCourses((current) =>
+        current.map((course) => (course.id === updated.id ? updated : course)),
+      );
+      if (
+        detailEntity?.type === "course" &&
+        detailEntity.data.id === updated.id
+      ) {
+        setDetailEntity({ type: "course", data: updated });
+      }
+      setEditingCourseId(null);
+    } catch {
+      setFormError("No se pudo actualizar el curso. Revisa los datos.");
+    } finally {
+      setCourseActionState(null);
+    }
+  }
+
+  async function handleDeleteCourse(course: Course) {
+    setFormError(null);
+    setCourseActionState({ type: "delete", id: course.id });
+
+    try {
+      await api.deleteCourse(course.id);
+      setCourses((current) =>
+        current.filter((currentCourse) => currentCourse.id !== course.id),
+      );
+      if (editingCourseId === course.id) {
+        setEditingCourseId(null);
+      }
+      if (
+        detailEntity?.type === "course" &&
+        detailEntity.data.id === course.id
+      ) {
+        navigate("/courses");
+      }
+    } catch {
+      setFormError("No se pudo eliminar el curso.");
+    } finally {
+      setCourseActionState(null);
     }
   }
 
@@ -415,12 +514,22 @@ export function App() {
       {route.page === "courses" ? (
         <CoursesPage
           canCreateCourse={canCreateCourse}
+          cancelEditingCourse={cancelEditingCourse}
+          courseActionState={courseActionState}
           courseForm={courseForm}
-          courses={courses}
+          courseTeacherFilter={courseTeacherFilter}
+          courses={filteredCourses}
+          editCourseForm={editCourseForm}
+          editingCourseId={editingCourseId}
           handleCreateCourse={handleCreateCourse}
+          handleDeleteCourse={handleDeleteCourse}
+          handleUpdateCourse={handleUpdateCourse}
           isLoading={isLoading}
           navigate={navigate}
           setCourseForm={setCourseForm}
+          setCourseTeacherFilter={setCourseTeacherFilter}
+          setEditCourseForm={setEditCourseForm}
+          startEditingCourse={startEditingCourse}
           submitState={submitState}
           teacherById={teacherById}
           teachers={teachers}
@@ -538,24 +647,22 @@ function DashboardPage({
 
 interface CoursesPageProps {
   canCreateCourse: boolean;
-  courseForm: {
-    title: string;
-    description: string;
-    teacherId: string;
-    capacity: number;
-  };
+  cancelEditingCourse: () => void;
+  courseActionState: CourseActionState;
+  courseForm: CourseFormState;
+  courseTeacherFilter: string;
   courses: Course[];
+  editCourseForm: CourseFormState;
+  editingCourseId: string | null;
   handleCreateCourse: (event: FormEvent<HTMLFormElement>) => void;
+  handleDeleteCourse: (course: Course) => void;
+  handleUpdateCourse: (event: FormEvent<HTMLFormElement>) => void;
   isLoading: boolean;
   navigate: (path: string) => void;
-  setCourseForm: Dispatch<
-    SetStateAction<{
-      title: string;
-      description: string;
-      teacherId: string;
-      capacity: number;
-    }>
-  >;
+  setCourseForm: Dispatch<SetStateAction<CourseFormState>>;
+  setCourseTeacherFilter: Dispatch<SetStateAction<string>>;
+  setEditCourseForm: Dispatch<SetStateAction<CourseFormState>>;
+  startEditingCourse: (course: Course) => void;
   submitState: EntityType | null;
   teacherById: Map<string, Teacher>;
   teachers: Teacher[];
@@ -563,12 +670,22 @@ interface CoursesPageProps {
 
 function CoursesPage({
   canCreateCourse,
+  cancelEditingCourse,
+  courseActionState,
   courseForm,
+  courseTeacherFilter,
   courses,
+  editCourseForm,
+  editingCourseId,
   handleCreateCourse,
+  handleDeleteCourse,
+  handleUpdateCourse,
   isLoading,
   navigate,
   setCourseForm,
+  setCourseTeacherFilter,
+  setEditCourseForm,
+  startEditingCourse,
   submitState,
   teacherById,
   teachers,
@@ -641,32 +758,157 @@ function CoursesPage({
         </form>
       </Section>
 
-      <Section title="Cursos">
+      <Section
+        action={
+          <select
+            className="compactSelect"
+            onChange={(event) => setCourseTeacherFilter(event.target.value)}
+            value={courseTeacherFilter}
+          >
+            <option value="">Todos</option>
+            {teachers.map((teacher) => (
+              <option key={teacher.id} value={teacher.id}>
+                {teacher.name}
+              </option>
+            ))}
+          </select>
+        }
+        title="Cursos"
+      >
         <div className="list">
           {isLoading ? <p>Cargando cursos...</p> : null}
+          {!isLoading && courses.length === 0 ? (
+            <div className="emptyDetail">No hay cursos para este filtro.</div>
+          ) : null}
           {courses.map((course) => (
             <article className="item" key={course.id}>
-              <div>
-                <h3>{course.title}</h3>
-                <p>{course.description}</p>
-              </div>
-              <dl>
-                <div>
-                  <dt>Docente</dt>
-                  <dd>{teacherById.get(course.teacherId)?.name ?? course.teacherId}</dd>
-                </div>
-                <div>
-                  <dt>Cupos</dt>
-                  <dd>{course.capacity}</dd>
-                </div>
-              </dl>
-              <button
-                className="secondaryButton"
-                onClick={() => navigate(buildDetailPath("course", course.id))}
-                type="button"
-              >
-                Ver detalle
-              </button>
+              {editingCourseId === course.id ? (
+                <form className="entityForm withoutDivider" onSubmit={handleUpdateCourse}>
+                  <input
+                    minLength={3}
+                    onChange={(event) =>
+                      setEditCourseForm((current) => ({
+                        ...current,
+                        title: event.target.value,
+                      }))
+                    }
+                    required
+                    value={editCourseForm.title}
+                  />
+                  <textarea
+                    minLength={10}
+                    onChange={(event) =>
+                      setEditCourseForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    required
+                    value={editCourseForm.description}
+                  />
+                  <div className="formRow">
+                    <select
+                      onChange={(event) =>
+                        setEditCourseForm((current) => ({
+                          ...current,
+                          teacherId: event.target.value,
+                        }))
+                      }
+                      required
+                      value={editCourseForm.teacherId}
+                    >
+                      {teachers.map((teacher) => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      min={1}
+                      onChange={(event) =>
+                        setEditCourseForm((current) => ({
+                          ...current,
+                          capacity: Number(event.target.value),
+                        }))
+                      }
+                      required
+                      type="number"
+                      value={editCourseForm.capacity}
+                    />
+                  </div>
+                  <div className="buttonRow">
+                    <button
+                      disabled={
+                        courseActionState?.type === "update" &&
+                        courseActionState.id === course.id
+                      }
+                      type="submit"
+                    >
+                      {courseActionState?.type === "update" &&
+                      courseActionState.id === course.id
+                        ? "Guardando..."
+                        : "Guardar"}
+                    </button>
+                    <button
+                      className="secondaryButton noMargin"
+                      onClick={cancelEditingCourse}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div>
+                    <h3>{course.title}</h3>
+                    <p>{course.description}</p>
+                  </div>
+                  <dl>
+                    <div>
+                      <dt>Docente</dt>
+                      <dd>
+                        {teacherById.get(course.teacherId)?.name ??
+                          course.teacherId}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Cupos</dt>
+                      <dd>{course.capacity}</dd>
+                    </div>
+                  </dl>
+                  <div className="buttonRow">
+                    <button
+                      className="secondaryButton noMargin"
+                      onClick={() => navigate(buildDetailPath("course", course.id))}
+                      type="button"
+                    >
+                      Ver
+                    </button>
+                    <button
+                      className="secondaryButton noMargin"
+                      onClick={() => startEditingCourse(course)}
+                      type="button"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="dangerButton"
+                      disabled={
+                        courseActionState?.type === "delete" &&
+                        courseActionState.id === course.id
+                      }
+                      onClick={() => handleDeleteCourse(course)}
+                      type="button"
+                    >
+                      {courseActionState?.type === "delete" &&
+                      courseActionState.id === course.id
+                        ? "Eliminando..."
+                        : "Eliminar"}
+                    </button>
+                  </div>
+                </>
+              )}
             </article>
           ))}
         </div>
