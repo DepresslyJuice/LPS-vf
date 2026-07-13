@@ -65,13 +65,21 @@ export function App() {
 
       {route.page === "students" ? (
         <StudentsPage
+          cancelEditingStudent={academic.cancelEditingStudent}
+          editStudentForm={academic.editStudentForm}
+          editingStudentId={academic.editingStudentId}
           handleCreateStudent={academic.handleCreateStudent}
+          handleDeleteStudent={academic.handleDeleteStudent}
+          handleUpdateStudent={academic.handleUpdateStudent}
           isLoading={academic.isLoading}
           navigate={navigate}
+          setEditStudentForm={academic.setEditStudentForm}
           setStudentForm={academic.setStudentForm}
           studentForm={academic.studentForm}
+          studentActionState={academic.studentActionState}
           students={academic.students}
           submitState={academic.submitState}
+          startEditingStudent={academic.startEditingStudent}
         />
       ) : null}
 
@@ -96,9 +104,11 @@ export function App() {
           enrollmentState={academic.enrollmentState}
           enrollmentStudentId={academic.enrollmentStudentId}
           handleEnrollStudent={academic.handleEnrollStudent}
+          handleUnenrollStudent={academic.handleUnenrollStudent}
           navigate={navigate}
           route={route}
           setEnrollmentStudentId={academic.setEnrollmentStudentId}
+          studentActionState={academic.studentActionState}
           students={academic.students}
           teacherById={academic.teacherById}
         />

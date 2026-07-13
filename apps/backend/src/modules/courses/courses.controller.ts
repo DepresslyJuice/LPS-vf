@@ -105,6 +105,23 @@ export class CoursesController {
     return this.coursesService.enrollStudent(courseId, studentId);
   }
 
+  @Delete(":courseId/students/:studentId")
+  @ApiOperation({
+    summary: "Retirar matricula de estudiante",
+    description: "Retira un estudiante matriculado en un curso.",
+  })
+  @ApiParam({ name: "courseId", example: "course_react" })
+  @ApiParam({ name: "studentId", example: "student_ana" })
+  @ApiOkResponse({ type: StudentResponseDto })
+  @ApiConflictResponse({ description: "El estudiante no esta matriculado" })
+  @ApiNotFoundResponse({ description: "Curso o estudiante no encontrado" })
+  async unenrollStudent(
+    @Param("courseId") courseId: string,
+    @Param("studentId") studentId: string,
+  ): Promise<Student> {
+    return this.coursesService.unenrollStudent(courseId, studentId);
+  }
+
   @Patch(":id")
   @ApiOperation({
     summary: "Actualizar curso",

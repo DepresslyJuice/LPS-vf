@@ -72,6 +72,38 @@ Respuestas:
 - `201`: estudiante creado.
 - `400`: datos invalidos.
 
+### Actualizar estudiante
+
+```http
+PATCH /api/students/{id}
+```
+
+Body parcial:
+
+```json
+{
+  "name": "Ana Torres",
+  "email": "ana.torres@example.com"
+}
+```
+
+Respuestas:
+
+- `200`: estudiante actualizado.
+- `400`: datos invalidos.
+- `404`: estudiante no encontrado.
+
+### Eliminar estudiante
+
+```http
+DELETE /api/students/{id}
+```
+
+Respuestas:
+
+- `204`: estudiante eliminado.
+- `404`: estudiante no encontrado.
+
 ## Docentes
 
 ### Listar docentes
@@ -180,6 +212,18 @@ Respuestas:
 - `201`: estudiante matriculado.
 - `404`: curso o estudiante no encontrado.
 - `409`: estudiante ya matriculado o curso sin cupos.
+
+### Retirar matricula de estudiante
+
+```http
+DELETE /api/courses/{courseId}/students/{studentId}
+```
+
+Respuestas:
+
+- `200`: estudiante actualizado sin la matricula del curso.
+- `404`: curso o estudiante no encontrado.
+- `409`: estudiante no matriculado en el curso.
 
 ### Actualizar curso
 

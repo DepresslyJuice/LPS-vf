@@ -81,6 +81,24 @@ export class CoursesService {
     ]);
   }
 
+  async unenrollStudent(courseId: string, studentId: string): Promise<Student> {
+    await this.findById(courseId);
+    const student = await this.studentsService.findById(studentId);
+
+    if (!student.enrolledCourseIds.includes(courseId)) {
+      throw new ConflictException(
+        `Student ${studentId} is not enrolled in course ${courseId}`,
+      );
+    }
+
+    return this.studentsService.updateEnrolledCourseIds(
+      studentId,
+      student.enrolledCourseIds.filter(
+        (enrolledCourseId) => enrolledCourseId !== courseId,
+      ),
+    );
+  }
+
   async findEnrolledStudents(courseId: string): Promise<Student[]> {
     await this.findById(courseId);
     const students = await this.studentsService.findAll();

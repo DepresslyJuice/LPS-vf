@@ -5,7 +5,7 @@ import {
   entityLabels,
   type Route,
 } from "../routing/routes";
-import type { DetailEntity, LoadState } from "../types/ui";
+import type { DetailEntity, LoadState, StudentActionState } from "../types/ui";
 
 interface DetailPageProps {
   courseById: Map<string, Course>;
@@ -15,9 +15,11 @@ interface DetailPageProps {
   enrollmentState: boolean;
   enrollmentStudentId: string;
   handleEnrollStudent: (course: Course) => void;
+  handleUnenrollStudent: (course: Course, student: Student) => void;
   navigate: (path: string) => void;
   route: Extract<Route, { page: "detail" }>;
   setEnrollmentStudentId: (studentId: string) => void;
+  studentActionState: StudentActionState;
   students: Student[];
   teacherById: Map<string, Teacher>;
 }
@@ -30,9 +32,11 @@ export function DetailPage({
   enrollmentState,
   enrollmentStudentId,
   handleEnrollStudent,
+  handleUnenrollStudent,
   navigate,
   route,
   setEnrollmentStudentId,
+  studentActionState,
   students,
   teacherById,
 }: DetailPageProps) {
@@ -66,8 +70,10 @@ export function DetailPage({
           enrollmentState={enrollmentState}
           enrollmentStudentId={enrollmentStudentId}
           handleEnrollStudent={handleEnrollStudent}
+          handleUnenrollStudent={handleUnenrollStudent}
           navigate={navigate}
           setEnrollmentStudentId={setEnrollmentStudentId}
+          studentActionState={studentActionState}
           students={students}
           teacherById={teacherById}
         />
@@ -87,8 +93,10 @@ function DetailContent({
   enrollmentState,
   enrollmentStudentId,
   handleEnrollStudent,
+  handleUnenrollStudent,
   navigate,
   setEnrollmentStudentId,
+  studentActionState,
   students,
   teacherById,
 }: DetailContentProps) {
@@ -111,8 +119,10 @@ function DetailContent({
         enrollmentState={enrollmentState}
         enrollmentStudentId={enrollmentStudentId}
         handleEnrollStudent={handleEnrollStudent}
+        handleUnenrollStudent={handleUnenrollStudent}
         navigate={navigate}
         setEnrollmentStudentId={setEnrollmentStudentId}
+        studentActionState={studentActionState}
         students={students}
         teacher={teacherById.get(detailEntity.data.teacherId)}
       />
@@ -138,8 +148,10 @@ interface CourseDetailProps {
   enrollmentState: boolean;
   enrollmentStudentId: string;
   handleEnrollStudent: (course: Course) => void;
+  handleUnenrollStudent: (course: Course, student: Student) => void;
   navigate: (path: string) => void;
   setEnrollmentStudentId: (studentId: string) => void;
+  studentActionState: StudentActionState;
   students: Student[];
   teacher: Teacher | undefined;
 }
@@ -149,8 +161,10 @@ function CourseDetail({
   enrollmentState,
   enrollmentStudentId,
   handleEnrollStudent,
+  handleUnenrollStudent,
   navigate,
   setEnrollmentStudentId,
+  studentActionState,
   students,
   teacher,
 }: CourseDetailProps) {
@@ -231,13 +245,31 @@ function CourseDetail({
                 <strong>{student.name}</strong>
                 <span>{student.email}</span>
               </div>
-              <button
-                className="inlineButton"
-                onClick={() => navigate(buildDetailPath("student", student.id))}
-                type="button"
-              >
-                Ver
-              </button>
+              <div className="rowActions">
+                <button
+                  className="inlineButton"
+                  onClick={() =>
+                    navigate(buildDetailPath("student", student.id))
+                  }
+                  type="button"
+                >
+                  Ver
+                </button>
+                <button
+                  className="dangerButton inlineButton"
+                  disabled={
+                    studentActionState?.type === "unenroll" &&
+                    studentActionState.id === student.id
+                  }
+                  onClick={() => handleUnenrollStudent(course, student)}
+                  type="button"
+                >
+                  {studentActionState?.type === "unenroll" &&
+                  studentActionState.id === student.id
+                    ? "Retirando..."
+                    : "Retirar"}
+                </button>
+              </div>
             </div>
           ))}
         </div>

@@ -8,6 +8,7 @@ import type {
   DetailEntity,
   EntityType,
   LoadState,
+  StudentActionState,
 } from "../types/ui";
 
 interface UseAcademicDataOptions {
@@ -25,12 +26,19 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   const [submitState, setSubmitState] = useState<EntityType | null>(null);
   const [courseActionState, setCourseActionState] =
     useState<CourseActionState>(null);
+  const [studentActionState, setStudentActionState] =
+    useState<StudentActionState>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [courseTeacherFilter, setCourseTeacherFilter] = useState("");
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [enrollmentStudentId, setEnrollmentStudentId] = useState("");
   const [enrollmentState, setEnrollmentState] = useState(false);
   const [studentForm, setStudentForm] = useState({ name: "", email: "" });
+  const [editStudentForm, setEditStudentForm] = useState({
+    name: "",
+    email: "",
+  });
   const [teacherForm, setTeacherForm] = useState({
     name: "",
     email: "",
@@ -148,6 +156,75 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
       setFormError("No se pudo crear el docente. Revisa los datos.");
     } finally {
       setSubmitState(null);
+    }
+  }
+
+  function startEditingStudent(student: Student) {
+    setFormError(null);
+    setEditingStudentId(student.id);
+    setEditStudentForm({
+      name: student.name,
+      email: student.email,
+    });
+  }
+
+  function cancelEditingStudent() {
+    setEditingStudentId(null);
+  }
+
+  async function handleUpdateStudent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!editingStudentId) {
+      return;
+    }
+
+    setFormError(null);
+    setStudentActionState({ type: "update", id: editingStudentId });
+
+    try {
+      const updated = await api.updateStudent(editingStudentId, editStudentForm);
+      setStudents((current) =>
+        current.map((student) =>
+          student.id === updated.id ? updated : student,
+        ),
+      );
+      if (
+        detailEntity?.type === "student" &&
+        detailEntity.data.id === updated.id
+      ) {
+        setDetailEntity({ type: "student", data: updated });
+      }
+      setEditingStudentId(null);
+    } catch {
+      setFormError("No se pudo actualizar el estudiante. Revisa los datos.");
+    } finally {
+      setStudentActionState(null);
+    }
+  }
+
+  async function handleDeleteStudent(student: Student) {
+    setFormError(null);
+    setStudentActionState({ type: "delete", id: student.id });
+
+    try {
+      await api.deleteStudent(student.id);
+      setStudents((current) =>
+        current.filter((currentStudent) => currentStudent.id !== student.id),
+      );
+      if (editingStudentId === student.id) {
+        setEditingStudentId(null);
+      }
+      if (
+        detailEntity?.type === "student" &&
+        detailEntity.data.id === student.id
+      ) {
+        navigate("/students");
+      }
+    } catch {
+      setFormError("No se pudo eliminar el estudiante.");
+    } finally {
+      setStudentActionState(null);
     }
   }
 
@@ -281,8 +358,38 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     }
   }
 
+  async function handleUnenrollStudent(course: Course, student: Student) {
+    setFormError(null);
+    setStudentActionState({ type: "unenroll", id: student.id });
+
+    try {
+      const updatedStudent = await api.unenrollStudentFromCourse(
+        course.id,
+        student.id,
+      );
+      setStudents((current) =>
+        current.map((currentStudent) =>
+          currentStudent.id === updatedStudent.id
+            ? updatedStudent
+            : currentStudent,
+        ),
+      );
+      if (
+        detailEntity?.type === "student" &&
+        detailEntity.data.id === updatedStudent.id
+      ) {
+        setDetailEntity({ type: "student", data: updatedStudent });
+      }
+    } catch {
+      setFormError("No se pudo retirar la matricula del estudiante.");
+    } finally {
+      setStudentActionState(null);
+    }
+  }
+
   return {
     canCreateCourse,
+    cancelEditingStudent,
     cancelEditingCourse,
     courseActionState,
     courseById,
@@ -292,7 +399,9 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     detailEntity,
     detailState,
     editCourseForm,
+    editStudentForm,
     editingCourseId,
+    editingStudentId,
     enrollmentState,
     enrollmentStudentId,
     filteredCourses,
@@ -301,18 +410,24 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     handleCreateStudent,
     handleCreateTeacher,
     handleDeleteCourse,
+    handleDeleteStudent,
     handleEnrollStudent,
+    handleUnenrollStudent,
     handleUpdateCourse,
+    handleUpdateStudent,
     isLoading,
     loadState,
     setCourseForm,
     setCourseTeacherFilter,
     setEditCourseForm,
+    setEditStudentForm,
     setEnrollmentStudentId,
     setStudentForm,
     setTeacherForm,
     startEditingCourse,
+    startEditingStudent,
     studentForm,
+    studentActionState,
     students,
     submitState,
     teacherById,

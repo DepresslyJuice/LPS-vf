@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateStudentInput, Student } from "@courses/shared";
+import { CreateStudentInput, Student, UpdateStudentInput } from "@courses/shared";
 import { SupabaseService } from "../../database/supabase.service";
 
 @Injectable()
@@ -44,6 +44,35 @@ export class StudentsRepository {
     }
 
     return data as Student;
+  }
+
+  async update(
+    id: string,
+    input: UpdateStudentInput,
+  ): Promise<Student | undefined> {
+    const { data, error } = await this.supabase
+      .from<Student>("students")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
+  async delete(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from<Student>("students")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
   }
 
   async updateEnrolledCourseIds(

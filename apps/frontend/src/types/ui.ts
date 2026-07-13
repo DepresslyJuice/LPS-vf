@@ -16,8 +16,13 @@ export type CourseActionState =
   | { type: "delete"; id: string }
   | null;
 
+export type StudentActionState =
+  | { type: "update"; id: string }
+  | { type: "delete"; id: string }
+  | { type: "unenroll"; id: string }
+  | null;
+
 export type DetailEntity =
   | { type: "course"; data: Course }
   | { type: "student"; data: Student }
   | { type: "teacher"; data: Teacher };
-

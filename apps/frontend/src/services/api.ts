@@ -6,6 +6,7 @@ import type {
   Student,
   Teacher,
   UpdateCourseInput,
+  UpdateStudentInput,
 } from "@courses/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
@@ -34,6 +35,19 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  updateStudent: (id: string, input: UpdateStudentInput) =>
+    request<Student>(`/students/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deleteStudent: (id: string) =>
+    fetch(`${API_URL}/students/${id}`, {
+      method: "DELETE",
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    }),
   getTeachers: () => request<Teacher[]>("/teachers"),
   getTeacher: (id: string) => request<Teacher>(`/teachers/${id}`),
   createTeacher: (input: CreateTeacherInput) =>
@@ -56,6 +70,10 @@ export const api = {
   enrollStudentInCourse: (courseId: string, studentId: string) =>
     request<Student>(`/courses/${courseId}/students/${studentId}`, {
       method: "POST",
+    }),
+  unenrollStudentFromCourse: (courseId: string, studentId: string) =>
+    request<Student>(`/courses/${courseId}/students/${studentId}`, {
+      method: "DELETE",
     }),
   updateCourse: (id: string, input: UpdateCourseInput) =>
     request<Course>(`/courses/${id}`, {
