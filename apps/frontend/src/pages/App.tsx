@@ -106,6 +106,8 @@ export function App() {
   const [formError, setFormError] = useState<string | null>(null);
   const [courseTeacherFilter, setCourseTeacherFilter] = useState("");
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [enrollmentStudentId, setEnrollmentStudentId] = useState("");
+  const [enrollmentState, setEnrollmentState] = useState(false);
   const [studentForm, setStudentForm] = useState({ name: "", email: "" });
   const [teacherForm, setTeacherForm] = useState({
     name: "",
@@ -339,6 +341,43 @@ export function App() {
     }
   }
 
+  async function handleEnrollStudent(course: Course) {
+    const availableStudent = students.find(
+      (student) => !student.enrolledCourseIds.includes(course.id),
+    );
+    const studentId = enrollmentStudentId || availableStudent?.id;
+
+    if (!studentId) {
+      return;
+    }
+
+    setFormError(null);
+    setEnrollmentState(true);
+
+    try {
+      const updatedStudent = await api.enrollStudentInCourse(
+        course.id,
+        studentId,
+      );
+      setStudents((current) =>
+        current.map((student) =>
+          student.id === updatedStudent.id ? updatedStudent : student,
+        ),
+      );
+      if (
+        detailEntity?.type === "student" &&
+        detailEntity.data.id === updatedStudent.id
+      ) {
+        setDetailEntity({ type: "student", data: updatedStudent });
+      }
+      setEnrollmentStudentId("");
+    } catch {
+      setFormError("No se pudo matricular el estudiante en el curso.");
+    } finally {
+      setEnrollmentState(false);
+    }
+  }
+
   function renderDetail() {
     if (detailState === "loading") {
       return <div className="emptyDetail">Cargando detalle...</div>;
@@ -355,6 +394,15 @@ export function App() {
     if (detailEntity.type === "course") {
       const course = detailEntity.data;
       const teacher = teacherById.get(course.teacherId);
+      const enrolledStudents = students.filter((student) =>
+        student.enrolledCourseIds.includes(course.id),
+      );
+      const availableStudents = students.filter(
+        (student) => !student.enrolledCourseIds.includes(course.id),
+      );
+      const selectedEnrollmentStudentId =
+        enrollmentStudentId || availableStudents[0]?.id || "";
+      const hasAvailableSeats = enrolledStudents.length < course.capacity;
 
       return (
         <article className="detailPanel">
@@ -374,9 +422,68 @@ export function App() {
             </div>
             <div>
               <dt>Cupos</dt>
-              <dd>{course.capacity}</dd>
+              <dd>
+                {enrolledStudents.length} / {course.capacity}
+              </dd>
             </div>
           </dl>
+          <div className="enrollmentPanel">
+            <h4>Matricula</h4>
+            <div className="formRow">
+              <select
+                disabled={availableStudents.length === 0 || !hasAvailableSeats}
+                onChange={(event) => setEnrollmentStudentId(event.target.value)}
+                value={selectedEnrollmentStudentId}
+              >
+                {availableStudents.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {student.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                disabled={
+                  enrollmentState ||
+                  availableStudents.length === 0 ||
+                  !hasAvailableSeats
+                }
+                onClick={() => handleEnrollStudent(course)}
+                type="button"
+              >
+                {enrollmentState ? "Matriculando..." : "Matricular"}
+              </button>
+            </div>
+            {!hasAvailableSeats ? (
+              <p className="helperText">El curso no tiene cupos disponibles.</p>
+            ) : null}
+            {availableStudents.length === 0 && hasAvailableSeats ? (
+              <p className="helperText">
+                No hay estudiantes disponibles para matricular.
+              </p>
+            ) : null}
+            <div className="tableLike">
+              {enrolledStudents.length === 0 ? (
+                <div className="emptyDetail">Sin estudiantes matriculados.</div>
+              ) : null}
+              {enrolledStudents.map((student) => (
+                <div className="row" key={student.id}>
+                  <div>
+                    <strong>{student.name}</strong>
+                    <span>{student.email}</span>
+                  </div>
+                  <button
+                    className="inlineButton"
+                    onClick={() =>
+                      navigate(buildDetailPath("student", student.id))
+                    }
+                    type="button"
+                  >
+                    Ver
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         </article>
       );
     }

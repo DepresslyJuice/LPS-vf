@@ -156,6 +156,30 @@ Respuestas:
 
 - `201`: curso creado.
 - `400`: datos invalidos.
+- `404`: docente no encontrado.
+
+### Listar estudiantes matriculados en curso
+
+```http
+GET /api/courses/{id}/students
+```
+
+Respuestas:
+
+- `200`: estudiantes matriculados.
+- `404`: curso no encontrado.
+
+### Matricular estudiante en curso
+
+```http
+POST /api/courses/{courseId}/students/{studentId}
+```
+
+Respuestas:
+
+- `201`: estudiante matriculado.
+- `404`: curso o estudiante no encontrado.
+- `409`: estudiante ya matriculado o curso sin cupos.
 
 ### Actualizar curso
 
@@ -176,7 +200,7 @@ Respuestas:
 
 - `200`: curso actualizado.
 - `400`: datos invalidos.
-- `404`: curso no encontrado.
+- `404`: curso o docente no encontrado.
 
 ### Eliminar curso
 

@@ -45,4 +45,22 @@ export class StudentsRepository {
 
     return data as Student;
   }
+
+  async updateEnrolledCourseIds(
+    id: string,
+    enrolledCourseIds: string[],
+  ): Promise<Student | undefined> {
+    const { data, error } = await this.supabase
+      .from<Student>("students")
+      .update({ enrolledCourseIds })
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
 }

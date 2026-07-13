@@ -23,4 +23,20 @@ export class StudentsService {
   async create(input: CreateStudentInput): Promise<Student> {
     return this.studentsRepository.create(input);
   }
+
+  async updateEnrolledCourseIds(
+    id: string,
+    enrolledCourseIds: string[],
+  ): Promise<Student> {
+    const student = await this.studentsRepository.updateEnrolledCourseIds(
+      id,
+      enrolledCourseIds,
+    );
+
+    if (!student) {
+      throw new NotFoundException(`Student ${id} was not found`);
+    }
+
+    return student;
+  }
 }

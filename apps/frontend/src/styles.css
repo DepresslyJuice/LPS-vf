@@ -402,6 +402,18 @@ dd {
   overflow-wrap: anywhere;
 }
 
+.enrollmentPanel {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid #e9efeb;
+  padding-top: 14px;
+}
+
+.enrollmentPanel h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .compactNotice {
   margin-bottom: 0;
 }

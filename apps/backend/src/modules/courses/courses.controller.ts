@@ -9,10 +9,11 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { Course } from "@courses/shared";
+import { Course, Student } from "@courses/shared";
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -26,6 +27,7 @@ import { CoursesService } from "./courses.service";
 import { CreateCourseDto } from "./dto/create-course.dto";
 import { CourseResponseDto } from "./dto/course-response.dto";
 import { UpdateCourseDto } from "./dto/update-course.dto";
+import { StudentResponseDto } from "../students/dto/student-response.dto";
 
 @ApiTags("courses")
 @Controller("courses")
@@ -60,6 +62,18 @@ export class CoursesController {
     return this.coursesService.findById(id);
   }
 
+  @Get(":id/students")
+  @ApiOperation({
+    summary: "Listar estudiantes matriculados",
+    description: "Devuelve los estudiantes matriculados en un curso.",
+  })
+  @ApiParam({ name: "id", example: "course_react" })
+  @ApiOkResponse({ type: StudentResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: "Curso no encontrado" })
+  async findEnrolledStudents(@Param("id") id: string): Promise<Student[]> {
+    return this.coursesService.findEnrolledStudents(id);
+  }
+
   @Post()
   @ApiOperation({
     summary: "Crear curso",
@@ -70,6 +84,25 @@ export class CoursesController {
   @ApiBadRequestResponse({ description: "Datos de curso invalidos" })
   async create(@Body() input: CreateCourseDto): Promise<Course> {
     return this.coursesService.create(input);
+  }
+
+  @Post(":courseId/students/:studentId")
+  @ApiOperation({
+    summary: "Matricular estudiante en curso",
+    description: "Matricula un estudiante existente en un curso con cupos.",
+  })
+  @ApiParam({ name: "courseId", example: "course_react" })
+  @ApiParam({ name: "studentId", example: "student_ana" })
+  @ApiCreatedResponse({ type: StudentResponseDto })
+  @ApiConflictResponse({
+    description: "Estudiante ya matriculado o curso sin cupos",
+  })
+  @ApiNotFoundResponse({ description: "Curso o estudiante no encontrado" })
+  async enrollStudent(
+    @Param("courseId") courseId: string,
+    @Param("studentId") studentId: string,
+  ): Promise<Student> {
+    return this.coursesService.enrollStudent(courseId, studentId);
   }
 
   @Patch(":id")

@@ -51,6 +51,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  getCourseStudents: (courseId: string) =>
+    request<Student[]>(`/courses/${courseId}/students`),
+  enrollStudentInCourse: (courseId: string, studentId: string) =>
+    request<Student>(`/courses/${courseId}/students/${studentId}`, {
+      method: "POST",
+    }),
   updateCourse: (id: string, input: UpdateCourseInput) =>
     request<Course>(`/courses/${id}`, {
       method: "PATCH",
