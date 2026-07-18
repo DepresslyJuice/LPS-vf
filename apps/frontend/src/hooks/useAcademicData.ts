@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import type { Course, CourseResource, CourseSection, Student, Teacher } from "@courses/shared";
+import type { Course, CourseResource, CourseSection, Quiz, Student, Teacher } from "@courses/shared";
 import { buildDetailPath, type Route } from "../routing/routes";
 import { api } from "../services/api";
 import type {
@@ -11,6 +11,7 @@ import type {
   DetailEntity,
   EntityType,
   LoadState,
+  QuizFormState,
   StudentActionState,
 } from "../types/ui";
 
@@ -42,6 +43,9 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   const [courseSections, setCourseSections] = useState<CourseSection[]>([]);
   const [courseResources, setCourseResources] = useState<
     Record<string, CourseResource[]>
+  >({});
+  const [courseQuizzes, setCourseQuizzes] = useState<
+    Record<string, Quiz[]>
   >({});
   const [studentForm, setStudentForm] = useState({ name: "", email: "" });
   const [editStudentForm, setEditStudentForm] = useState({
@@ -76,6 +80,55 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   const [courseResourceForms, setCourseResourceForms] = useState<
     Record<string, CourseResourceFormState>
   >({});
+  const [courseQuizForms, setCourseQuizForms] = useState<
+    Record<string, QuizFormState>
+  >({});
+
+  function getQuizForm(sectionId: string): QuizFormState {
+    return (
+      courseQuizForms[sectionId] ?? {
+        title: "",
+        description: "",
+        questions: [
+          {
+            question: "",
+            options: ["", "", "", ""],
+            correctAnswer: 0,
+          },
+        ],
+      }
+    );
+  }
+
+  function setCourseQuizForm(
+    sectionId: string,
+    updater:
+      | QuizFormState
+      | ((current: QuizFormState) => QuizFormState),
+  ) {
+    setCourseQuizForms((current) => {
+      const currentForm = getQuizForm(sectionId);
+      return {
+        ...current,
+        [sectionId]:
+          typeof updater === "function" ? updater(currentForm) : updater,
+      };
+    });
+  }
+
+  function resetCourseQuizForm(sectionId: string) {
+    setCourseQuizForm(sectionId, {
+      title: "",
+      description: "",
+      questions: [
+        {
+          question: "",
+          options: ["", "", "", ""],
+          correctAnswer: 0,
+        },
+      ],
+    });
+  }
 
   function getResourceForm(sectionId: string): CourseResourceFormState {
     return (
@@ -171,6 +224,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     if (route.page !== "detail" || route.type !== "course") {
       setCourseSections([]);
       setCourseResources({});
+      setCourseQuizzes({});
       return;
     }
 
@@ -185,6 +239,15 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
           ] as const),
         );
         setCourseResources(Object.fromEntries(resourceEntries));
+
+        const quizEntries = await Promise.all(
+          sections.map(async (section) => [
+            section.id,
+            await api.getSectionQuizzes(section.id),
+          ] as const),
+        );
+        setCourseQuizzes(Object.fromEntries(quizEntries));
+
         setCourseSectionForm((current) => ({
           ...current,
           order: sections.length + 1,
@@ -193,6 +256,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
       .catch(() => {
         setCourseSections([]);
         setCourseResources({});
+        setCourseQuizzes({});
       });
   }, [route]);
 
@@ -488,6 +552,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
       const created = await api.createCourseSection(course.id, courseSectionForm);
       setCourseSections((current) => [...current, created]);
       setCourseResources((current) => ({ ...current, [created.id]: [] }));
+      setCourseQuizzes((current) => ({ ...current, [created.id]: [] }));
       setCourseSectionForm({
         title: "",
         summary: "",
@@ -510,6 +575,11 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
         current.filter((currentSection) => currentSection.id !== section.id),
       );
       setCourseResources((current) => {
+        const next = { ...current };
+        delete next[section.id];
+        return next;
+      });
+      setCourseQuizzes((current) => {
         const next = { ...current };
         delete next[section.id];
         return next;
@@ -564,6 +634,65 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     }
   }
 
+  async function handleCreateCourseQuiz(section: CourseSection) {
+    const form = getQuizForm(section.id);
+    if (!form.title.trim()) {
+      setFormError("El título del cuestionario es obligatorio.");
+      return;
+    }
+    for (const q of form.questions) {
+      if (!q.question.trim()) {
+        setFormError("Todas las preguntas deben tener un enunciado.");
+        return;
+      }
+      for (let i = 0; i < q.options.length; i++) {
+        if (!q.options[i].trim()) {
+          setFormError(`Por favor completa todas las opciones de la pregunta: "${q.question}"`);
+          return;
+        }
+      }
+    }
+
+    setFormError(null);
+    setCourseContentActionState({ type: "create-quiz", id: section.id });
+
+    try {
+      const created = await api.createSectionQuiz(section.id, {
+        title: form.title,
+        description: form.description,
+        questions: form.questions,
+      });
+      setCourseQuizzes((current) => ({
+        ...current,
+        [section.id]: [...(current[section.id] ?? []), created],
+      }));
+      resetCourseQuizForm(section.id);
+    } catch {
+      setFormError("No se pudo crear el cuestionario.");
+    } finally {
+      setCourseContentActionState(null);
+    }
+  }
+
+  async function handleDeleteCourseQuiz(quiz: Quiz) {
+    setFormError(null);
+    setCourseContentActionState({ type: "delete-quiz", id: quiz.id });
+
+    try {
+      await api.deleteCourseQuiz(quiz.id);
+      setCourseQuizzes((current) => ({
+        ...current,
+        [quiz.sectionId]: (current[quiz.sectionId] ?? []).filter(
+          (currentQuiz) => currentQuiz.id !== quiz.id,
+        ),
+      }));
+    } catch {
+      setFormError("No se pudo eliminar el cuestionario.");
+    } finally {
+      setCourseContentActionState(null);
+    }
+  }
+
   return {
     canCreateCourse,
     cancelEditingStudent,
@@ -574,6 +703,8 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     courseForm,
     courseResourceForms,
     courseResources,
+    courseQuizzes,
+    courseQuizForms,
     courseSectionForm,
     courseSections,
     courseTeacherFilter,
@@ -597,6 +728,8 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     handleCreateCourseSection,
     handleDeleteCourseResource,
     handleDeleteCourseSection,
+    handleCreateCourseQuiz,
+    handleDeleteCourseQuiz,
     handleEnrollStudent,
     handleUnenrollStudent,
     handleUpdateCourse,
@@ -605,6 +738,9 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     loadState,
     setCourseForm,
     setCourseResourceForm,
+    setCourseQuizForm,
+    getQuizForm,
+    resetCourseQuizForm,
     setCourseSectionForm,
     setCourseTeacherFilter,
     setEditCourseForm,

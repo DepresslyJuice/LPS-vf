@@ -2,10 +2,12 @@ import type {
   Course,
   CourseResource,
   CourseSection,
+  Quiz,
+  QuizQuestion,
   Student,
   Teacher,
 } from "@courses/shared";
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { Section } from "../components/Section";
 import {
   buildDetailPath,
@@ -16,6 +18,8 @@ import type {
   CourseContentActionState,
   CourseResourceFormState,
   CourseSectionFormState,
+  QuizFormState,
+  QuizQuestionFormState,
   DetailEntity,
   LoadState,
   StudentActionState,
@@ -26,6 +30,8 @@ interface DetailPageProps {
   courseContentActionState: CourseContentActionState;
   courseResourceForms: Record<string, CourseResourceFormState>;
   courseResources: Record<string, CourseResource[]>;
+  courseQuizzes: Record<string, Quiz[]>;
+  courseQuizForms: Record<string, QuizFormState>;
   courseSectionForm: CourseSectionFormState;
   courseSections: CourseSection[];
   courses: Course[];
@@ -37,6 +43,8 @@ interface DetailPageProps {
   handleCreateCourseSection: (course: Course) => void;
   handleDeleteCourseResource: (resource: CourseResource) => void;
   handleDeleteCourseSection: (section: CourseSection) => void;
+  handleCreateCourseQuiz: (section: CourseSection) => void;
+  handleDeleteCourseQuiz: (quiz: Quiz) => void;
   handleEnrollStudent: (course: Course) => void;
   handleUnenrollStudent: (course: Course, student: Student) => void;
   navigate: (path: string) => void;
@@ -46,6 +54,13 @@ interface DetailPageProps {
     updater:
       | CourseResourceFormState
       | ((current: CourseResourceFormState) => CourseResourceFormState),
+  ) => void;
+  getQuizForm: (sectionId: string) => QuizFormState;
+  setCourseQuizForm: (
+    sectionId: string,
+    updater:
+      | QuizFormState
+      | ((current: QuizFormState) => QuizFormState),
   ) => void;
   setCourseSectionForm: Dispatch<SetStateAction<CourseSectionFormState>>;
   setEnrollmentStudentId: (studentId: string) => void;
@@ -59,6 +74,8 @@ export function DetailPage({
   courseContentActionState,
   courseResourceForms,
   courseResources,
+  courseQuizzes,
+  courseQuizForms,
   courseSectionForm,
   courseSections,
   courses,
@@ -70,11 +87,15 @@ export function DetailPage({
   handleCreateCourseSection,
   handleDeleteCourseResource,
   handleDeleteCourseSection,
+  handleCreateCourseQuiz,
+  handleDeleteCourseQuiz,
   handleEnrollStudent,
   handleUnenrollStudent,
   navigate,
   route,
   setCourseResourceForm,
+  getQuizForm,
+  setCourseQuizForm,
   setCourseSectionForm,
   setEnrollmentStudentId,
   studentActionState,
@@ -108,6 +129,8 @@ export function DetailPage({
           courseContentActionState={courseContentActionState}
           courseResourceForms={courseResourceForms}
           courseResources={courseResources}
+          courseQuizzes={courseQuizzes}
+          courseQuizForms={courseQuizForms}
           courseSectionForm={courseSectionForm}
           courseSections={courseSections}
           courses={courses}
@@ -119,10 +142,14 @@ export function DetailPage({
           handleCreateCourseSection={handleCreateCourseSection}
           handleDeleteCourseResource={handleDeleteCourseResource}
           handleDeleteCourseSection={handleDeleteCourseSection}
+          handleCreateCourseQuiz={handleCreateCourseQuiz}
+          handleDeleteCourseQuiz={handleDeleteCourseQuiz}
           handleEnrollStudent={handleEnrollStudent}
           handleUnenrollStudent={handleUnenrollStudent}
           navigate={navigate}
           setCourseResourceForm={setCourseResourceForm}
+          getQuizForm={getQuizForm}
+          setCourseQuizForm={setCourseQuizForm}
           setCourseSectionForm={setCourseSectionForm}
           setEnrollmentStudentId={setEnrollmentStudentId}
           studentActionState={studentActionState}
@@ -142,6 +169,8 @@ function DetailContent({
   courseContentActionState,
   courseResourceForms,
   courseResources,
+  courseQuizzes,
+  courseQuizForms,
   courseSectionForm,
   courseSections,
   courses,
@@ -153,10 +182,14 @@ function DetailContent({
   handleCreateCourseSection,
   handleDeleteCourseResource,
   handleDeleteCourseSection,
+  handleCreateCourseQuiz,
+  handleDeleteCourseQuiz,
   handleEnrollStudent,
   handleUnenrollStudent,
   navigate,
   setCourseResourceForm,
+  getQuizForm,
+  setCourseQuizForm,
   setCourseSectionForm,
   setEnrollmentStudentId,
   studentActionState,
@@ -182,6 +215,8 @@ function DetailContent({
         courseContentActionState={courseContentActionState}
         courseResourceForms={courseResourceForms}
         courseResources={courseResources}
+        courseQuizzes={courseQuizzes}
+        courseQuizForms={courseQuizForms}
         courseSectionForm={courseSectionForm}
         courseSections={courseSections}
         enrollmentState={enrollmentState}
@@ -190,10 +225,14 @@ function DetailContent({
         handleCreateCourseSection={handleCreateCourseSection}
         handleDeleteCourseResource={handleDeleteCourseResource}
         handleDeleteCourseSection={handleDeleteCourseSection}
+        handleCreateCourseQuiz={handleCreateCourseQuiz}
+        handleDeleteCourseQuiz={handleDeleteCourseQuiz}
         handleEnrollStudent={handleEnrollStudent}
         handleUnenrollStudent={handleUnenrollStudent}
         navigate={navigate}
         setCourseResourceForm={setCourseResourceForm}
+        getQuizForm={getQuizForm}
+        setCourseQuizForm={setCourseQuizForm}
         setCourseSectionForm={setCourseSectionForm}
         setEnrollmentStudentId={setEnrollmentStudentId}
         studentActionState={studentActionState}
@@ -222,6 +261,8 @@ interface CourseDetailProps {
   courseContentActionState: CourseContentActionState;
   courseResourceForms: Record<string, CourseResourceFormState>;
   courseResources: Record<string, CourseResource[]>;
+  courseQuizzes: Record<string, Quiz[]>;
+  courseQuizForms: Record<string, QuizFormState>;
   courseSectionForm: CourseSectionFormState;
   courseSections: CourseSection[];
   enrollmentState: boolean;
@@ -230,6 +271,8 @@ interface CourseDetailProps {
   handleCreateCourseSection: (course: Course) => void;
   handleDeleteCourseResource: (resource: CourseResource) => void;
   handleDeleteCourseSection: (section: CourseSection) => void;
+  handleCreateCourseQuiz: (section: CourseSection) => void;
+  handleDeleteCourseQuiz: (quiz: Quiz) => void;
   handleEnrollStudent: (course: Course) => void;
   handleUnenrollStudent: (course: Course, student: Student) => void;
   navigate: (path: string) => void;
@@ -238,6 +281,13 @@ interface CourseDetailProps {
     updater:
       | CourseResourceFormState
       | ((current: CourseResourceFormState) => CourseResourceFormState),
+  ) => void;
+  getQuizForm: (sectionId: string) => QuizFormState;
+  setCourseQuizForm: (
+    sectionId: string,
+    updater:
+      | QuizFormState
+      | ((current: QuizFormState) => QuizFormState),
   ) => void;
   setCourseSectionForm: Dispatch<SetStateAction<CourseSectionFormState>>;
   setEnrollmentStudentId: (studentId: string) => void;
@@ -251,6 +301,8 @@ function CourseDetail({
   courseContentActionState,
   courseResourceForms,
   courseResources,
+  courseQuizzes,
+  courseQuizForms,
   courseSectionForm,
   courseSections,
   enrollmentState,
@@ -259,16 +311,23 @@ function CourseDetail({
   handleCreateCourseSection,
   handleDeleteCourseResource,
   handleDeleteCourseSection,
+  handleCreateCourseQuiz,
+  handleDeleteCourseQuiz,
   handleEnrollStudent,
   handleUnenrollStudent,
   navigate,
   setCourseResourceForm,
+  getQuizForm,
+  setCourseQuizForm,
   setCourseSectionForm,
   setEnrollmentStudentId,
   studentActionState,
   students,
   teacher,
 }: CourseDetailProps) {
+  const [expandedQuizId, setExpandedQuizId] = useState<string | null>(null);
+  const [activeQuizCreateSectionId, setActiveQuizCreateSectionId] = useState<string | null>(null);
+
   const enrolledStudents = students.filter((student) =>
     student.enrolledCourseIds.includes(course.id),
   );
@@ -505,6 +564,247 @@ function CourseDetail({
                     </button>
                   </div>
                 </form>
+
+                {/* Seccion de Cuestionarios */}
+                <div className="quizSection">
+                  <div className="quizSectionHeader">
+                    <h5>Cuestionarios</h5>
+                    <button
+                      className="inlineButton textButton"
+                      onClick={() =>
+                        setActiveQuizCreateSectionId((current) =>
+                          current === section.id ? null : section.id
+                        )
+                      }
+                      type="button"
+                    >
+                      {activeQuizCreateSectionId === section.id
+                        ? "Cancelar creación"
+                        : "+ Nuevo Cuestionario"}
+                    </button>
+                  </div>
+
+                  {/* Listado de Cuestionarios */}
+                  <div className="quizList">
+                    {(courseQuizzes[section.id] ?? []).length === 0 ? (
+                      <p className="helperText">Sin cuestionarios creados.</p>
+                    ) : null}
+                    {(courseQuizzes[section.id] ?? []).map((quiz) => {
+                      const isExpanded = expandedQuizId === quiz.id;
+                      return (
+                        <div className="quizItem" key={quiz.id}>
+                          <div className="quizHeader">
+                            <div className="quizInfo">
+                              <h4>{quiz.title}</h4>
+                              {quiz.description ? <p>{quiz.description}</p> : null}
+                            </div>
+                            <div className="rowActions">
+                              <button
+                                className="inlineButton"
+                                onClick={() =>
+                                  setExpandedQuizId(isExpanded ? null : quiz.id)
+                                }
+                                type="button"
+                              >
+                                {isExpanded ? "Ocultar preguntas" : "Ver preguntas"}
+                              </button>
+                              <button
+                                className="dangerButton inlineButton"
+                                disabled={
+                                  courseContentActionState?.type === "delete-quiz" &&
+                                  courseContentActionState.id === quiz.id
+                                }
+                                onClick={() => handleDeleteCourseQuiz(quiz)}
+                                type="button"
+                              >
+                                {courseContentActionState?.type === "delete-quiz" &&
+                                courseContentActionState.id === quiz.id
+                                  ? "Eliminando..."
+                                  : "Eliminar"}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Preguntas del Cuestionario */}
+                          {isExpanded ? (
+                            <div className="quizQuestionsPreview">
+                              {quiz.questions.map((q, qIndex) => (
+                                <div className="previewQuestion" key={qIndex}>
+                                  <div className="previewQuestionText">
+                                    {qIndex + 1}. {q.question}
+                                  </div>
+                                  <div className="previewOptions">
+                                    {q.options.map((opt, optIndex) => (
+                                      <div
+                                        className={`previewOption ${
+                                          optIndex === q.correctAnswer ? "isCorrect" : ""
+                                        }`}
+                                        key={optIndex}
+                                      >
+                                        {optIndex === q.correctAnswer ? "✓ " : ""}{opt}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Formulario de creación de cuestionario */}
+                  {activeQuizCreateSectionId === section.id ? (
+                    <form
+                      className="quizForm"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        handleCreateCourseQuiz(section);
+                        setActiveQuizCreateSectionId(null);
+                      }}
+                    >
+                      <h4>Crear Nuevo Cuestionario</h4>
+                      <input
+                        minLength={3}
+                        onChange={(event) =>
+                          setCourseQuizForm(section.id, (current) => ({
+                            ...current,
+                            title: event.target.value,
+                          }))
+                        }
+                        placeholder="Título del cuestionario"
+                        required
+                        value={getQuizForm(section.id).title}
+                      />
+                      <textarea
+                        onChange={(event) =>
+                          setCourseQuizForm(section.id, (current) => ({
+                            ...current,
+                            description: event.target.value,
+                          }))
+                        }
+                        placeholder="Descripción breve"
+                        value={getQuizForm(section.id).description}
+                      />
+
+                      <div className="questionsContainer">
+                        <h5>Preguntas</h5>
+                        {getQuizForm(section.id).questions.map((q, qIndex) => (
+                          <div className="questionCard" key={qIndex}>
+                            <div className="questionHeader">
+                              <span className="questionTitle">Pregunta #{qIndex + 1}</span>
+                              {getQuizForm(section.id).questions.length > 1 ? (
+                                <button
+                                  className="dangerButton inlineButton"
+                                  onClick={() =>
+                                    setCourseQuizForm(section.id, (current) => ({
+                                      ...current,
+                                      questions: current.questions.filter((_, idx) => idx !== qIndex),
+                                    }))
+                                  }
+                                  type="button"
+                                >
+                                  Eliminar
+                                </button>
+                              ) : null}
+                            </div>
+
+                            <input
+                              onChange={(event) =>
+                                setCourseQuizForm(section.id, (current) => {
+                                  const questions = [...current.questions];
+                                  questions[qIndex] = {
+                                    ...questions[qIndex],
+                                    question: event.target.value,
+                                  };
+                                  return { ...current, questions };
+                                })
+                              }
+                              placeholder="Enunciado de la pregunta"
+                              required
+                              value={q.question}
+                            />
+
+                            <div className="optionsGrid">
+                              {q.options.map((opt, optIndex) => (
+                                <div className="optionInputGroup" key={optIndex}>
+                                  <input
+                                    className="optionRadio"
+                                    checked={q.correctAnswer === optIndex}
+                                    name={`correctAnswer-${section.id}-${qIndex}`}
+                                    onChange={() =>
+                                      setCourseQuizForm(section.id, (current) => {
+                                        const questions = [...current.questions];
+                                        questions[qIndex] = {
+                                          ...questions[qIndex],
+                                          correctAnswer: optIndex,
+                                        };
+                                        return { ...current, questions };
+                                      })
+                                    }
+                                    type="radio"
+                                  />
+                                  <input
+                                    onChange={(event) =>
+                                      setCourseQuizForm(section.id, (current) => {
+                                        const questions = [...current.questions];
+                                        const options = [...questions[qIndex].options];
+                                        options[optIndex] = event.target.value;
+                                        questions[qIndex] = {
+                                          ...questions[qIndex],
+                                          options,
+                                        };
+                                        return { ...current, questions };
+                                      })
+                                    }
+                                    placeholder={`Opción ${String.fromCharCode(65 + optIndex)}`}
+                                    required
+                                    value={opt}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="buttonRow twoButtons">
+                        <button
+                          className="secondaryButton noMargin"
+                          onClick={() =>
+                            setCourseQuizForm(section.id, (current) => ({
+                              ...current,
+                              questions: [
+                                ...current.questions,
+                                {
+                                  question: "",
+                                  options: ["", "", "", ""],
+                                  correctAnswer: 0,
+                                },
+                              ],
+                            }))
+                          }
+                          type="button"
+                        >
+                          + Agregar Pregunta
+                        </button>
+                        <button
+                          disabled={
+                            courseContentActionState?.type === "create-quiz" &&
+                            courseContentActionState.id === section.id
+                          }
+                          type="submit"
+                        >
+                          {courseContentActionState?.type === "create-quiz" &&
+                          courseContentActionState.id === section.id
+                            ? "Guardando..."
+                            : "Guardar Cuestionario"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
+                </div>
               </article>
             );
           })}

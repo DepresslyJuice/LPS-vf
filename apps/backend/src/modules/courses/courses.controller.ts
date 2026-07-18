@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { Course, CourseResource, CourseSection, Student } from "@courses/shared";
+import { Course, CourseResource, CourseSection, Quiz, Student } from "@courses/shared";
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -34,6 +34,8 @@ import { CourseSectionResponseDto } from "./dto/course-section-response.dto";
 import { CreateCourseResourceDto } from "./dto/create-course-resource.dto";
 import { UpdateCourseResourceDto } from "./dto/update-course-resource.dto";
 import { CourseResourceResponseDto } from "./dto/course-resource-response.dto";
+import { CreateQuizDto } from "./dto/create-quiz.dto";
+import { QuizResponseDto } from "./dto/quiz-response.dto";
 
 @ApiTags("courses")
 @Controller("courses")
@@ -276,5 +278,49 @@ export class CoursesController {
   @ApiNotFoundResponse({ description: "Curso no encontrado" })
   async delete(@Param("id") id: string): Promise<void> {
     await this.coursesService.delete(id);
+  }
+
+  @Get("sections/:sectionId/quizzes")
+  @ApiOperation({
+    summary: "Listar cuestionarios de seccion",
+    description: "Devuelve los cuestionarios asociados a una seccion.",
+  })
+  @ApiParam({ name: "sectionId", example: "section_1" })
+  @ApiOkResponse({ type: QuizResponseDto, isArray: true })
+  @ApiNotFoundResponse({ description: "Seccion no encontrada" })
+  async findQuizzes(
+    @Param("sectionId") sectionId: string,
+  ): Promise<Quiz[]> {
+    return this.coursesService.findQuizzes(sectionId);
+  }
+
+  @Post("sections/:sectionId/quizzes")
+  @ApiOperation({
+    summary: "Crear cuestionario de seccion",
+    description: "Crea un cuestionario dentro de una seccion.",
+  })
+  @ApiParam({ name: "sectionId", example: "section_1" })
+  @ApiBody({ type: CreateQuizDto })
+  @ApiCreatedResponse({ type: QuizResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de cuestionario invalidos" })
+  @ApiNotFoundResponse({ description: "Seccion no encontrada" })
+  async createQuiz(
+    @Param("sectionId") sectionId: string,
+    @Body() input: CreateQuizDto,
+  ): Promise<Quiz> {
+    return this.coursesService.createQuiz(sectionId, input);
+  }
+
+  @Delete("quizzes/:quizId")
+  @HttpCode(204)
+  @ApiOperation({
+    summary: "Eliminar cuestionario",
+    description: "Elimina un cuestionario.",
+  })
+  @ApiParam({ name: "quizId", example: "quiz_1" })
+  @ApiNoContentResponse({ description: "Cuestionario eliminado" })
+  @ApiNotFoundResponse({ description: "Cuestionario no encontrado" })
+  async deleteQuiz(@Param("quizId") quizId: string): Promise<void> {
+    await this.coursesService.deleteQuiz(quizId);
   }
 }

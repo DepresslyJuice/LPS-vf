@@ -101,6 +101,8 @@ export function App() {
           courseContentActionState={academic.courseContentActionState}
           courseResourceForms={academic.courseResourceForms}
           courseResources={academic.courseResources}
+          courseQuizzes={academic.courseQuizzes}
+          courseQuizForms={academic.courseQuizForms}
           courseSectionForm={academic.courseSectionForm}
           courseSections={academic.courseSections}
           courses={academic.courses}
@@ -112,11 +114,15 @@ export function App() {
           handleCreateCourseSection={academic.handleCreateCourseSection}
           handleDeleteCourseResource={academic.handleDeleteCourseResource}
           handleDeleteCourseSection={academic.handleDeleteCourseSection}
+          handleCreateCourseQuiz={academic.handleCreateCourseQuiz}
+          handleDeleteCourseQuiz={academic.handleDeleteCourseQuiz}
           handleEnrollStudent={academic.handleEnrollStudent}
           handleUnenrollStudent={academic.handleUnenrollStudent}
           navigate={navigate}
           route={route}
           setCourseResourceForm={academic.setCourseResourceForm}
+          getQuizForm={academic.getQuizForm}
+          setCourseQuizForm={academic.setCourseQuizForm}
           setCourseSectionForm={academic.setCourseSectionForm}
           setEnrollmentStudentId={academic.setEnrollmentStudentId}
           studentActionState={academic.studentActionState}

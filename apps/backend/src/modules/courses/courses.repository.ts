@@ -9,6 +9,8 @@ import {
   UpdateCourseInput,
   UpdateCourseResourceInput,
   UpdateCourseSectionInput,
+  Quiz,
+  CreateQuizInput,
 } from "@courses/shared";
 import { SupabaseService } from "../../database/supabase.service";
 
@@ -213,6 +215,45 @@ export class CoursesRepository {
   async deleteResource(id: string): Promise<void> {
     const { error } = await this.supabase
       .from<CourseResource>("course_resources")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async findQuizzes(sectionId: string): Promise<Quiz[]> {
+    const { data, error } = await this.supabase
+      .from<Quiz>("quizzes")
+      .select("*")
+      .eq("sectionId", sectionId)
+      .order("title", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
+  }
+
+  async createQuiz(input: CreateQuizInput): Promise<Quiz> {
+    const { data, error } = await this.supabase
+      .from<Quiz>("quizzes")
+      .insert(input)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data as Quiz;
+  }
+
+  async deleteQuiz(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from<Quiz>("quizzes")
       .delete()
       .eq("id", id);
 

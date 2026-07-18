@@ -14,6 +14,8 @@ import {
   UpdateCourseInput,
   UpdateCourseResourceInput,
   UpdateCourseSectionInput,
+  Quiz,
+  CreateQuizInput,
 } from "@courses/shared";
 import { StudentsService } from "../students/students.service";
 import { TeachersService } from "../teachers/teachers.service";
@@ -189,5 +191,22 @@ export class CoursesService {
 
   async deleteResource(resourceId: string): Promise<void> {
     await this.coursesRepository.deleteResource(resourceId);
+  }
+
+  async findQuizzes(sectionId: string): Promise<Quiz[]> {
+    await this.findSectionById(sectionId);
+    return this.coursesRepository.findQuizzes(sectionId);
+  }
+
+  async createQuiz(
+    sectionId: string,
+    input: Omit<CreateQuizInput, "sectionId">,
+  ): Promise<Quiz> {
+    await this.findSectionById(sectionId);
+    return this.coursesRepository.createQuiz({ ...input, sectionId });
+  }
+
+  async deleteQuiz(quizId: string): Promise<void> {
+    await this.coursesRepository.deleteQuiz(quizId);
   }
 }

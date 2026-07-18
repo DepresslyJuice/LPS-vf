@@ -55,3 +55,23 @@ export type CreateCourseResourceInput = Omit<CourseResource, "id">;
 export type UpdateCourseResourceInput = Partial<
   Omit<CourseResource, "id" | "sectionId">
 >;
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+export interface Quiz {
+  id: EntityId;
+  sectionId: EntityId;
+  title: string;
+  description: string;
+  questions: QuizQuestion[];
+}
+
+export type CreateQuizInput = Omit<Quiz, "id">;
+export type UpdateQuizInput = Partial<
+  Omit<Quiz, "id" | "sectionId">
+>;
+

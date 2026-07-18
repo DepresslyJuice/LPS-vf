@@ -11,6 +11,8 @@ import type {
   Teacher,
   UpdateCourseInput,
   UpdateStudentInput,
+  Quiz,
+  CreateQuizInput,
 } from "@courses/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
@@ -122,6 +124,24 @@ export const api = {
     }),
   deleteCourse: (id: string) =>
     fetch(`${API_URL}/courses/${id}`, {
+      method: "DELETE",
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    }),
+  getSectionQuizzes: (sectionId: string) =>
+    request<Quiz[]>(`/courses/sections/${sectionId}/quizzes`),
+  createSectionQuiz: (
+    sectionId: string,
+    input: Omit<CreateQuizInput, "sectionId">,
+  ) =>
+    request<Quiz>(`/courses/sections/${sectionId}/quizzes`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteCourseQuiz: (quizId: string) =>
+    fetch(`${API_URL}/courses/quizzes/${quizId}`, {
       method: "DELETE",
     }).then((response) => {
       if (!response.ok) {

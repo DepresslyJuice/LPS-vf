@@ -41,7 +41,21 @@ export type CourseContentActionState =
   | { type: "delete-section"; id: string }
   | { type: "create-resource"; id: string }
   | { type: "delete-resource"; id: string }
+  | { type: "create-quiz"; id: string }
+  | { type: "delete-quiz"; id: string }
   | null;
+
+export type QuizQuestionFormState = {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+};
+
+export type QuizFormState = {
+  title: string;
+  description: string;
+  questions: QuizQuestionFormState[];
+};
 
 export type DetailEntity =
   | { type: "course"; data: Course }
