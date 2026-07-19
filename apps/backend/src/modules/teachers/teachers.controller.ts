@@ -14,7 +14,10 @@ import { CreateTeacherDto } from "./dto/create-teacher.dto";
 import { TeacherResponseDto } from "./dto/teacher-response.dto";
 import { TeachersService } from "./teachers.service";
 
+import { Public } from "@/modules/auth/decorators/public.decorator";
+
 @ApiTags("teachers")
+@Public()
 @Controller("teachers")
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}

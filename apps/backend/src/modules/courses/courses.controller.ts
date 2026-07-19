@@ -37,7 +37,10 @@ import { CourseResourceResponseDto } from "./dto/course-resource-response.dto";
 import { CreateQuizDto } from "./dto/create-quiz.dto";
 import { QuizResponseDto } from "./dto/quiz-response.dto";
 
+import { Public } from "@/modules/auth/decorators/public.decorator";
+
 @ApiTags("courses")
+@Public()
 @Controller("courses")
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}

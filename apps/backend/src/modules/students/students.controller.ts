@@ -25,7 +25,10 @@ import { StudentResponseDto } from "./dto/student-response.dto";
 import { UpdateStudentDto } from "./dto/update-student.dto";
 import { StudentsService } from "./students.service";
 
+import { Public } from "@/modules/auth/decorators/public.decorator";
+
 @ApiTags("students")
+@Public()
 @Controller("students")
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
