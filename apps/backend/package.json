@@ -7,7 +7,14 @@
     "start:dev": "nest start --watch",
     "build": "nest build",
     "lint": "tsc --noEmit -p tsconfig.json",
-    "test": "echo \"No backend tests yet\""
+    "test": "echo \"No backend tests yet\"",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:create": "npm run typeorm migration:create",
+    "migration:run": "ts-node -r tsconfig-paths/register src/database/run-migrations.ts",
+    "migration:revert": "ts-node -r tsconfig-paths/register src/database/revert-migration.ts",
+    "migration:show": "ts-node -r tsconfig-paths/register src/database/show-migrations.ts",
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeders/run-seeder.ts",
+    "db:setup": "npm run migration:run && npm run seed"
   },
   "dependencies": {
     "@courses/shared": "0.1.0",
@@ -42,6 +49,8 @@
     "@types/node": "^20.14.12",
     "@types/nodemailer": "^8.0.1",
     "@types/passport-jwt": "^4.0.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.4"
   }
 }
