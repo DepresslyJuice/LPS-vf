@@ -10,13 +10,13 @@ export class CreateUsersSeeder {
     const rolRepo    = dataSource.getRepository(Rol);
 
     // Buscar roles ya creados por el seeder inicial
-    const adminRole    = await rolRepo.findOne({ where: { nombre: 'admin' } });
-    const userRole     = await rolRepo.findOne({ where: { nombre: 'user' } });
-    const moderatorRole = await rolRepo.findOne({ where: { nombre: 'moderator' } });
+    const adminRole = await rolRepo.findOne({ where: { nombre: 'admin' } });
+    const tutorRole = await rolRepo.findOne({ where: { nombre: 'tutor' } });
+    const estudianteRole = await rolRepo.findOne({ where: { nombre: 'estudiante' } });
 
-    if (!adminRole || !userRole || !moderatorRole) {
+    if (!adminRole || !tutorRole || !estudianteRole) {
       throw new Error(
-        'Error: Los roles admin, user y moderator deben existir antes de ejecutar este seeder.',
+        'Error: Los roles admin, tutor y estudiante deben existir antes de ejecutar este seeder.',
       );
     }
 
@@ -66,7 +66,7 @@ export class CreateUsersSeeder {
       }
     };
 
-    // admin@sistema.com → trigger le da "user", aquí le sumamos "admin"
+    // admin@sistema.com → trigger le da "estudiante", aquí le sumamos "admin"
     await createUser(
       'Administrador del sistema',
       'admin@sistema.com',
@@ -74,20 +74,20 @@ export class CreateUsersSeeder {
       [adminRole],
     );
 
-    // user@sistema.com → trigger le da "user", no necesita extras
+    // tutor@sistema.com → trigger le da "estudiante", aquí le sumamos "tutor"
     await createUser(
-      'Usuario estándar del sistema',
-      'user@sistema.com',
-      'user123',
-      [],
+      'Profesor/Tutor del sistema',
+      'tutor@sistema.com',
+      'tutor123',
+      [tutorRole],
     );
 
-    // moderator@sistema.com → trigger le da "user", aquí le sumamos "moderator"
+    // estudiante@sistema.com → trigger le da "estudiante", no necesita extras
     await createUser(
-      'Moderador del sistema',
-      'moderator@sistema.com',
-      'moderator123',
-      [moderatorRole],
+      'Estudiante estándar',
+      'estudiante@sistema.com',
+      'estudiante123',
+      [],
     );
 
     console.log('✅ Seeder de usuarios ejecutado correctamente.');

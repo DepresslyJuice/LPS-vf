@@ -23,17 +23,48 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       "Content-Type": "application/json",
       ...options?.headers,
     },
+    credentials: "include", // Send HttpOnly cookies automatically
     ...options,
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    const errorText = await response.text().catch(() => "");
+    let errorMessage = `Request failed with status ${response.status}`;
+    try {
+      const errorJson = JSON.parse(errorText);
+      if (errorJson.message) errorMessage = Array.isArray(errorJson.message) ? errorJson.message.join(", ") : errorJson.message;
+    } catch (e) {
+      if (errorText) errorMessage = errorText;
+    }
+    throw new Error(errorMessage);
   }
 
-  return response.json() as Promise<T>;
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return {} as T;
+  }
+  
+  return JSON.parse(text) as T;
 }
 
 export const api = {
+  // Auth
+  login: (input: any) =>
+    request<any>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  logout: () =>
+    request<void>("/auth/logout", {
+      method: "POST",
+    }),
+  getProfile: () => request<any>("/auth/profile"),
+
+  // Data
   getStudents: () => request<Student[]>("/students"),
   getStudent: (id: string) => request<Student>(`/students/${id}`),
   createStudent: (input: CreateStudentInput) =>

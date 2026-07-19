@@ -12,15 +12,15 @@ export class AddTriggerAssignRoleUser1734660000000 implements MigrationInterface
       DECLARE
           rol_user_id INTEGER;
       BEGIN
-          -- Obtener ID del rol "user"
+          -- Obtener ID del rol "estudiante"
           SELECT id_rol
           INTO rol_user_id
           FROM roles
-          WHERE nombre = 'user'
+          WHERE nombre = 'estudiante'
           LIMIT 1;
 
           IF rol_user_id IS NULL THEN
-              RAISE EXCEPTION 'El rol "user" no existe en la tabla roles.';
+              RAISE EXCEPTION 'El rol "estudiante" no existe en la tabla roles.';
           END IF;
 
           -- Insertar relación en usuario_roles

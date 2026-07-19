@@ -8,10 +8,31 @@ import { DashboardPage } from "./DashboardPage";
 import { DetailPage } from "./DetailPage";
 import { StudentsPage } from "./StudentsPage";
 import { TeachersPage } from "./TeachersPage";
+import { LoginPage } from "./LoginPage";
+import { useAuth } from "../hooks/AuthProvider";
 
 export function App() {
   const { isActive, navigate, route } = useRoute();
   const academic = useAcademicData({ navigate, route });
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+        Cargando...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  // Si es estudiante y quiere ver el dashboard, forzar a cursos
+  if (route.page === "dashboard" && user.roles.includes("estudiante")) {
+    navigate("/courses");
+    return null;
+  }
 
   return (
     <main className="appShell">
@@ -29,7 +50,7 @@ export function App() {
         <div className="notice">{academic.formError}</div>
       ) : null}
 
-      {route.page === "dashboard" ? (
+      {route.page === "dashboard" && !user.roles.includes("estudiante") ? (
         <DashboardPage
           courses={academic.courses}
           navigate={navigate}

@@ -76,34 +76,35 @@ export async function seedInitialData(dataSource: DataSource) {
         permisos: allPermisos,      // OK: esto asigna todos los permisos
       }),
     );
-
     console.log('  ✔ Rol creado: admin');
   }
 
-  // USER – solo lectura
-  if (!(await rolRepository.findOne({ where: { nombre: 'user' } }))) {
+  // TUTOR – creación y actualización de cursos, vista de estudiantes
+  if (!(await rolRepository.findOne({ where: { nombre: 'tutor' } }))) {
     await rolRepository.save(
       rolRepository.create({
-        nombre: 'user',
-        descripcion: 'Usuario estándar del sistema',
-        permisos: allPermisos.filter(p => p.clave.includes('read')),
-      }),
-    );
-    console.log('  ✔ Rol creado: user');
-  }
-
-  // MODERATOR – lectura y actualización
-  if (!(await rolRepository.findOne({ where: { nombre: 'moderator' } }))) {
-    await rolRepository.save(
-      rolRepository.create({
-        nombre: 'moderator',
-        descripcion: 'Moderador con permisos intermedios',
-        permisos: allPermisos.filter(
-          p => p.clave.includes('read') || p.clave.includes('update'),
+        nombre: 'tutor',
+        descripcion: 'Profesor/Tutor con permisos para crear y gestionar cursos',
+        permisos: allPermisos.filter(p => 
+          p.clave.includes('read') || 
+          p.clave === 'products:create' || // Equivalente a crear curso en lógica genérica si se reusa
+          p.clave === 'products:update'
         ),
       }),
     );
-    console.log('  ✔ Rol creado: moderator');
+    console.log('  ✔ Rol creado: tutor');
+  }
+
+  // ESTUDIANTE – solo lectura
+  if (!(await rolRepository.findOne({ where: { nombre: 'estudiante' } }))) {
+    await rolRepository.save(
+      rolRepository.create({
+        nombre: 'estudiante',
+        descripcion: 'Estudiante del sistema, acceso de solo lectura',
+        permisos: allPermisos.filter(p => p.clave.includes('read')),
+      }),
+    );
+    console.log('  ✔ Rol creado: estudiante');
   }
 
   console.log('🎉 Seeding inicial completado!');

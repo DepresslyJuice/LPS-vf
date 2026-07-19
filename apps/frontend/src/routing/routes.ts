@@ -1,6 +1,7 @@
 import type { EntityType } from "../types/ui";
 
 export type Route =
+  | { page: "login" }
   | { page: "dashboard" }
   | { page: "courses" }
   | { page: "students" }
@@ -22,6 +23,10 @@ export function parseRoute(pathname: string): Route {
   }
 
   if (segments.length === 1) {
+    if (segments[0] === "login") {
+      return { page: "login" };
+    }
+
     if (segments[0] === "courses") {
       return { page: "courses" };
     }

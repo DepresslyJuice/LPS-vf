@@ -2,6 +2,7 @@ import "dotenv/config";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import * as cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
 
 const DEFAULT_CORS_ORIGINS = "http://localhost:5173";
@@ -16,6 +17,7 @@ function getCorsOrigins() {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
   app.setGlobalPrefix("api");
   app.enableCors({
     origin: true,

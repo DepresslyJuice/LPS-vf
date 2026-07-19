@@ -18,11 +18,10 @@ export const METADATA_KEYS = {
   PERMISSIONS: 'permissions',
 };
 
-// Opciones de cookies para cross-domain (Vercel → Render)
 export const COOKIE_OPTIONS = {
-  httpOnly: true, // No accesible desde JavaScript (XSS protection)
-  secure: true, // SIEMPRE true (ambos usan HTTPS)
-  sameSite: 'none' as const, // CAMBIADO: permite cross-domain
+  httpOnly: true,
+  secure: false, // Permite HTTP permanentemente a petición del usuario
+  sameSite: 'lax' as const, // Debe ser lax o strict cuando secure es false
   path: '/',
 };
 

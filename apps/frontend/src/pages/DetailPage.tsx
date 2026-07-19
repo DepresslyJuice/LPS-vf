@@ -438,7 +438,7 @@ function CourseDetail({
                 url: "",
                 content: "",
               };
-            const resources = courseResources[section.id] ?? [];
+            const resources = courseResources[section.id] || [];
 
             return (
               <article className="item" key={section.id}>
