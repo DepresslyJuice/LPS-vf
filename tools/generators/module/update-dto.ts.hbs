@@ -1,0 +1,16 @@
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsOptional, IsString, MinLength } from "class-validator";
+
+/**
+ * DTO de actualización parcial para {{pascalCase name}}.
+ *
+ * TODO: Agregar los campos editables de la entidad.
+ * Todos los campos deben ser opcionales (@IsOptional) para soportar PATCH.
+ */
+export class Update{{pascalCase name}}Dto {
+  @ApiPropertyOptional({ example: "Nombre actualizado", minLength: 2 })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  name?: string;
+}

@@ -232,20 +232,32 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
       .getCourseSections(route.id)
       .then(async (sections) => {
         setCourseSections(sections);
-        const resourceEntries = await Promise.all(
-          sections.map(async (section) => [
-            section.id,
-            await api.getSectionResources(section.id),
-          ] as const),
-        );
+        let resourceEntries: [string, CourseResource[]][] = [];
+        try {
+          resourceEntries = await Promise.all(
+            sections.map(async (section) => [
+              section.id,
+              await api.getSectionResources(section.id),
+            ] as const),
+          );
+        } catch (error) {
+          console.error("Error al cargar recursos de sección:", error);
+          resourceEntries = sections.map((section) => [section.id, []] as const);
+        }
         setCourseResources(Object.fromEntries(resourceEntries));
 
-        const quizEntries = await Promise.all(
-          sections.map(async (section) => [
-            section.id,
-            await api.getSectionQuizzes(section.id),
-          ] as const),
-        );
+        let quizEntries: [string, Quiz[]][] = [];
+        try {
+          quizEntries = await Promise.all(
+            sections.map(async (section) => [
+              section.id,
+              await api.getSectionQuizzes(section.id),
+            ] as const),
+          );
+        } catch (error) {
+          console.warn("No se pudieron cargar los cuestionarios de sección. Puede ser por falta de migración de la tabla 'quizzes':", error);
+          quizEntries = sections.map((section) => [section.id, []] as const);
+        }
         setCourseQuizzes(Object.fromEntries(quizEntries));
 
         setCourseSectionForm((current) => ({

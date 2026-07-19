@@ -125,12 +125,29 @@ Funciones:
 - `getCourse`
 - `createCourse`
 
-### Componentes UI
+## Componentes UI Reutilizables (`@courses/ui`)
 
-Ubicacion: `apps/frontend/src/components`
+Ubicacion: `packages/ui/src/components/`
 
-- `Metric`: tarjeta de indicador numerico.
-- `Section`: contenedor reutilizable para bloques de pantalla.
+Estos componentes son reutilizables por cualquier aplicacion del monorepo.
+Ver `docs/REUSABLE_FRAMEWORK_GUIDE.md` para convenciones y checklist.
+
+| Componente | Proposito |
+|-----------|-----------|
+| `Metric` | Tarjeta de indicador numerico. |
+| `Section` | Contenedor reutilizable con titulo y accion. |
+| `StatusBadge` | Indicador visual de estado (draft/published/archived). |
+| `DataTable` | Tabla generica con filas clickeables. |
+| `FormField` | Input con label, validacion y error. |
+| `EmptyState` | Indicador de contenido vacio con accion. |
+| `Modal` | Dialog modal con overlay. |
+
+### Design Tokens
+
+Ubicacion: `packages/ui/src/tokens.css`
+
+Variables CSS con prefijo `--ui-` que centralizan colores, tipografia,
+espaciado, bordes, sombras y transiciones del sistema de diseno.
 
 ## Shared
 
@@ -147,3 +164,4 @@ Contratos:
 - `CreateCourseInput`
 
 Estos tipos ayudan a mantener consistencia entre frontend y backend.
+

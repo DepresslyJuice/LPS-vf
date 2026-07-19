@@ -8,6 +8,8 @@ Repositorio local con arquitectura de fabrica de software para una aplicacion de
 - Frontend: React + Vite + TypeScript
 - Monorepo: npm workspaces
 - Contratos compartidos: `packages/shared`
+- Componentes UI reutilizables: `packages/ui`
+- Generadores de código: Plop.js
 
 ## Estructura
 
@@ -17,11 +19,15 @@ apps/
   frontend/    SPA React/Vite
 packages/
   shared/      Tipos y contratos reutilizables
+  ui/          Componentes React reutilizables
+tools/
+  generators/  Templates para generadores de código
 docs/          Arquitectura, convenciones y backlog
 ```
 
 ## Documentacion
 
+- `docs/REUSABLE_FRAMEWORK_GUIDE.md`: guia del framework de componentes reutilizables.
 - `docs/ENTERPRISE_DOCUMENTATION.md`: documentacion empresarial del sistema.
 - `docs/ARCHITECTURE.md`: arquitectura y decisiones tecnicas.
 - `docs/COMPONENTS.md`: componentes clave por capa.
@@ -41,6 +47,14 @@ Backend: `http://localhost:3000/api`
 
 Frontend: `http://localhost:5173`
 
+## Generadores
+
+```bash
+npm run generate:module    # Genera un modulo CRUD backend completo
+```
+
+Ver `docs/REUSABLE_FRAMEWORK_GUIDE.md` para detalles.
+
 ## Dominio inicial
 
 - Estudiantes
@@ -48,3 +62,4 @@ Frontend: `http://localhost:5173`
 - Cursos
 
 La primera version usa repositorios en memoria para acelerar el desarrollo. La capa de infraestructura queda aislada para reemplazarla luego por PostgreSQL, Prisma, TypeORM u otro adaptador.
+

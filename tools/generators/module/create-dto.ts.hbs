@@ -1,0 +1,16 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { IsString, MinLength } from "class-validator";
+
+/**
+ * DTO de creación para {{pascalCase name}}.
+ *
+ * TODO: Agregar los campos específicos de la entidad.
+ * Cada campo debe tener decoradores de validación (class-validator)
+ * y documentación Swagger (@ApiProperty).
+ */
+export class Create{{pascalCase name}}Dto {
+  @ApiProperty({ example: "Nombre de ejemplo", minLength: 2 })
+  @IsString()
+  @MinLength(2)
+  name!: string;
+}

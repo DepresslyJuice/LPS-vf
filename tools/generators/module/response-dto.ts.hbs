@@ -1,0 +1,15 @@
+import { ApiProperty } from "@nestjs/swagger";
+
+/**
+ * DTO de respuesta para {{pascalCase name}}.
+ *
+ * TODO: Agregar los campos que el endpoint debe devolver.
+ * Cada campo debe tener @ApiProperty para la documentación Swagger.
+ */
+export class {{pascalCase name}}ResponseDto {
+  @ApiProperty({ example: "{{name}}_1" })
+  id!: string;
+
+  @ApiProperty({ example: "Nombre de ejemplo" })
+  name!: string;
+}

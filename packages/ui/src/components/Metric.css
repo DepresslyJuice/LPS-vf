@@ -1,0 +1,22 @@
+/* Metric — tarjeta de indicador numerico */
+
+.uiMetric {
+  border: var(--ui-border-width) solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  padding: var(--ui-space-xl);
+}
+
+.uiMetric__label {
+  display: block;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-font-size-base);
+}
+
+.uiMetric__value {
+  display: block;
+  margin-top: var(--ui-space-sm);
+  font-size: var(--ui-font-size-xl);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text);
+}

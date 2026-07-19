@@ -1,0 +1,44 @@
+/* FormField — input con label y mensaje de error */
+
+.uiFormField {
+  display: grid;
+  gap: var(--ui-space-xs);
+}
+
+.uiFormField__label {
+  color: var(--ui-color-text-label);
+  font-size: var(--ui-font-size-sm);
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.uiFormField__input {
+  width: 100%;
+  min-height: 42px;
+  border: var(--ui-border-width) solid var(--ui-color-input-border);
+  border-radius: var(--ui-radius-lg);
+  padding: 10px 12px;
+  background: var(--ui-color-input-bg);
+  color: var(--ui-color-text);
+  font: inherit;
+  transition: border-color var(--ui-transition-fast);
+}
+
+.uiFormField__input:focus {
+  outline: none;
+  border-color: var(--ui-color-primary);
+}
+
+.uiFormField__input--error {
+  border-color: var(--ui-color-error-border);
+}
+
+.uiFormField__error {
+  color: var(--ui-color-error);
+  font-size: var(--ui-font-size-xs);
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.uiFormField__textarea {
+  min-height: 76px;
+  resize: vertical;
+}

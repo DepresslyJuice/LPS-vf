@@ -1,0 +1,33 @@
+/* EmptyState — estado vacío con mensaje y acción */
+
+.uiEmptyState {
+  display: grid;
+  gap: var(--ui-space-md);
+  justify-items: center;
+  border: var(--ui-border-width) dashed var(--ui-color-input-border);
+  border-radius: var(--ui-radius-lg);
+  padding: var(--ui-space-3xl) var(--ui-space-xl);
+  color: var(--ui-color-text-muted);
+  background: var(--ui-color-input-bg);
+  text-align: center;
+}
+
+.uiEmptyState__icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.uiEmptyState__title {
+  margin: 0;
+  font-size: var(--ui-font-size-md);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text);
+}
+
+.uiEmptyState__message {
+  margin: 0;
+  font-size: var(--ui-font-size-base);
+  line-height: 1.45;
+  max-width: 320px;
+}

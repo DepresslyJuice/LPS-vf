@@ -1,0 +1,29 @@
+/* StatusBadge — indicador de estado */
+
+.uiStatusBadge {
+  display: inline-block;
+  flex: 0 0 auto;
+  border: var(--ui-border-width) solid var(--ui-color-input-border);
+  border-radius: var(--ui-radius-full);
+  padding: 4px 8px;
+  background: var(--ui-color-bg);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-font-size-xs);
+  font-weight: var(--ui-font-weight-heavy);
+  text-transform: capitalize;
+}
+
+.uiStatusBadge--draft {
+  color: var(--ui-color-draft);
+  background: var(--ui-color-draft-bg);
+}
+
+.uiStatusBadge--published {
+  color: var(--ui-color-published);
+  background: var(--ui-color-published-bg);
+}
+
+.uiStatusBadge--archived {
+  color: var(--ui-color-archived);
+  background: var(--ui-color-archived-bg);
+}

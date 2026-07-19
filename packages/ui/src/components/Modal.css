@@ -1,0 +1,95 @@
+/* Modal — dialog modal con overlay */
+
+.uiModal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ui-z-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  animation: uiModalFadeIn var(--ui-transition-normal) ease-out;
+}
+
+.uiModal__panel {
+  position: relative;
+  z-index: var(--ui-z-modal);
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  border: var(--ui-border-width) solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-overlay);
+  animation: uiModalSlideUp var(--ui-transition-normal) ease-out;
+}
+
+.uiModal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-md);
+  padding: var(--ui-space-lg) var(--ui-space-xl);
+  border-bottom: var(--ui-border-width) solid var(--ui-color-border-subtle);
+}
+
+.uiModal__title {
+  margin: 0;
+  font-size: var(--ui-font-size-lg);
+}
+
+.uiModal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: var(--ui-border-width) solid var(--ui-color-input-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: border-color var(--ui-transition-fast),
+    background var(--ui-transition-fast);
+}
+
+.uiModal__close:hover {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-surface);
+  color: var(--ui-color-primary);
+}
+
+.uiModal__body {
+  padding: var(--ui-space-xl);
+}
+
+.uiModal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ui-space-sm);
+  padding: var(--ui-space-lg) var(--ui-space-xl);
+  border-top: var(--ui-border-width) solid var(--ui-color-border-subtle);
+}
+
+@keyframes uiModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes uiModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

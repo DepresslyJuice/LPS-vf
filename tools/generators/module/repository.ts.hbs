@@ -1,0 +1,73 @@
+import { Injectable } from "@nestjs/common";
+import { SupabaseService } from "../../database/supabase.service";
+
+@Injectable()
+export class {{pascalCase name}}sRepository {
+  constructor(private readonly supabase: SupabaseService) {}
+
+  async findAll() {
+    const { data, error } = await this.supabase
+      .from("{{name}}s")
+      .select("*");
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
+  }
+
+  async findById(id: string) {
+    const { data, error } = await this.supabase
+      .from("{{name}}s")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
+  async create(input: Record<string, unknown>) {
+    const { data, error } = await this.supabase
+      .from("{{name}}s")
+      .insert(input)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+
+  async update(id: string, input: Record<string, unknown>) {
+    const { data, error } = await this.supabase
+      .from("{{name}}s")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
+  async delete(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("{{name}}s")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+  }
+}

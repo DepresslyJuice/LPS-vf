@@ -1,0 +1,95 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+} from "@nestjs/common";
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from "@nestjs/swagger";
+import { Create{{pascalCase name}}Dto } from "./dto/create-{{name}}.dto";
+import { {{pascalCase name}}ResponseDto } from "./dto/{{name}}-response.dto";
+import { Update{{pascalCase name}}Dto } from "./dto/update-{{name}}.dto";
+import { {{pascalCase name}}sService } from "./{{name}}s.service";
+
+@ApiTags("{{name}}s")
+@Controller("{{name}}s")
+export class {{pascalCase name}}sController {
+  constructor(private readonly {{camelCase name}}sService: {{pascalCase name}}sService) {}
+
+  @Get()
+  @ApiOperation({
+    summary: "Listar {{name}}s",
+    description: "Devuelve todos los registros de {{name}}.",
+  })
+  @ApiOkResponse({ type: {{pascalCase name}}ResponseDto, isArray: true })
+  async findAll() {
+    return this.{{camelCase name}}sService.findAll();
+  }
+
+  @Get(":id")
+  @ApiOperation({
+    summary: "Obtener {{name}} por id",
+    description: "Devuelve el detalle individual de un {{name}}.",
+  })
+  @ApiParam({ name: "id", example: "{{name}}_1" })
+  @ApiOkResponse({ type: {{pascalCase name}}ResponseDto })
+  @ApiNotFoundResponse({ description: "{{pascalCase name}} no encontrado" })
+  async findById(@Param("id") id: string) {
+    return this.{{camelCase name}}sService.findById(id);
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: "Crear {{name}}",
+    description: "Registra un nuevo {{name}}.",
+  })
+  @ApiBody({ type: Create{{pascalCase name}}Dto })
+  @ApiCreatedResponse({ type: {{pascalCase name}}ResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de {{name}} invalidos" })
+  async create(@Body() input: Create{{pascalCase name}}Dto) {
+    return this.{{camelCase name}}sService.create(input);
+  }
+
+  @Patch(":id")
+  @ApiOperation({
+    summary: "Actualizar {{name}}",
+    description: "Actualiza parcialmente un {{name}} existente.",
+  })
+  @ApiParam({ name: "id", example: "{{name}}_1" })
+  @ApiBody({ type: Update{{pascalCase name}}Dto })
+  @ApiOkResponse({ type: {{pascalCase name}}ResponseDto })
+  @ApiBadRequestResponse({ description: "Datos de {{name}} invalidos" })
+  @ApiNotFoundResponse({ description: "{{pascalCase name}} no encontrado" })
+  async update(
+    @Param("id") id: string,
+    @Body() input: Update{{pascalCase name}}Dto,
+  ) {
+    return this.{{camelCase name}}sService.update(id, input);
+  }
+
+  @Delete(":id")
+  @HttpCode(204)
+  @ApiOperation({
+    summary: "Eliminar {{name}}",
+    description: "Elimina un {{name}} existente.",
+  })
+  @ApiParam({ name: "id", example: "{{name}}_1" })
+  @ApiNoContentResponse({ description: "{{pascalCase name}} eliminado" })
+  @ApiNotFoundResponse({ description: "{{pascalCase name}} no encontrado" })
+  async delete(@Param("id") id: string): Promise<void> {
+    await this.{{camelCase name}}sService.delete(id);
+  }
+}

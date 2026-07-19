@@ -1,0 +1,21 @@
+/* Section — contenedor con título y acción opcional */
+
+.uiSection {
+  border: var(--ui-border-width) solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  padding: var(--ui-space-xl);
+}
+
+.uiSection__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-md);
+  margin-bottom: 14px;
+}
+
+.uiSection__title {
+  margin: 0;
+  font-size: var(--ui-font-size-lg);
+}

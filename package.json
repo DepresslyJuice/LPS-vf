@@ -11,6 +11,8 @@
     "dev": "npm run dev --workspaces --if-present",
     "dev:backend": "npm run build -w @courses/shared && npm run start:dev -w @courses/backend",
     "dev:frontend": "npm run build -w @courses/shared && npm run dev -w @courses/frontend",
+    "build:ui": "npm run build -w @courses/ui",
+    "generate:module": "plop module",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
@@ -23,5 +25,8 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "plop": "^4.0.5"
   }
 }

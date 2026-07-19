@@ -1,0 +1,40 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { {{pascalCase name}}sRepository } from "./{{name}}s.repository";
+
+@Injectable()
+export class {{pascalCase name}}sService {
+  constructor(private readonly {{camelCase name}}sRepository: {{pascalCase name}}sRepository) {}
+
+  async findAll() {
+    return this.{{camelCase name}}sRepository.findAll();
+  }
+
+  async findById(id: string) {
+    const record = await this.{{camelCase name}}sRepository.findById(id);
+
+    if (!record) {
+      throw new NotFoundException(`{{pascalCase name}} ${id} was not found`);
+    }
+
+    return record;
+  }
+
+  async create(input: Record<string, unknown>) {
+    return this.{{camelCase name}}sRepository.create(input);
+  }
+
+  async update(id: string, input: Record<string, unknown>) {
+    const record = await this.{{camelCase name}}sRepository.update(id, input);
+
+    if (!record) {
+      throw new NotFoundException(`{{pascalCase name}} ${id} was not found`);
+    }
+
+    return record;
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.findById(id);
+    await this.{{camelCase name}}sRepository.delete(id);
+  }
+}
