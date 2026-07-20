@@ -15,12 +15,15 @@ import type {
   StudentActionState,
 } from "../types/ui";
 
+import type { User } from "../hooks/AuthProvider";
+
 interface UseAcademicDataOptions {
   navigate: (path: string) => void;
   route: Route;
+  user: User | null;
 }
 
-export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
+export function useAcademicData({ navigate, route, user }: UseAcademicDataOptions) {
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -173,6 +176,17 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   }
 
   useEffect(() => {
+    if (!user) {
+      setLoadState("idle");
+      return;
+    }
+
+    const isStudent = user.roles.includes("estudiante") && !user.roles.includes("admin") && !user.roles.includes("tutor");
+    if (isStudent) {
+      setLoadState("ready");
+      return;
+    }
+
     setLoadState("loading");
     Promise.all([api.getStudents(), api.getTeachers(), api.getCourses()])
       .then(([studentData, teacherData, courseData]) => {
@@ -186,7 +200,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
         setLoadState("ready");
       })
       .catch(() => setLoadState("error"));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (route.page !== "detail") {

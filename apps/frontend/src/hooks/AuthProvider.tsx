@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           idUsuario: profile.idUsuario,
           email: profile.email,
           nombre: profile.nombre,
-          roles: profile.roles || [],
+          roles: profile.roles ? profile.roles.map((r: any) => typeof r === 'string' ? r : r.nombre) : [],
         });
       } catch (error) {
         setUser(null);
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       idUsuario: profile.idUsuario,
       email: profile.email,
       nombre: profile.nombre,
-      roles: profile.roles || [],
+      roles: profile.roles ? profile.roles.map((r: any) => typeof r === 'string' ? r : r.nombre) : [],
     });
   };
 

@@ -14,8 +14,8 @@ import { useAuth } from "../hooks/AuthProvider";
 
 export function App() {
   const { isActive, navigate, route } = useRoute();
-  const academic = useAcademicData({ navigate, route });
   const { user, loading } = useAuth();
+  const academic = useAcademicData({ navigate, route, user });
   const isStudent = (user?.roles.includes("estudiante")
     && !user?.roles.includes("admin")
     && !user?.roles.includes("tutor")) ?? false;
@@ -35,11 +35,7 @@ export function App() {
     return <LoginPage />;
   }
 
-  // Si es estudiante y quiere ver el dashboard, forzar a cursos
-  if (route.page === "dashboard" && isStudent) {
-    navigate("/courses");
-    return null;
-  }
+  // Removed student redirect to allow viewing dashboard
 
   return (
     <main className="appShell">
@@ -57,12 +53,13 @@ export function App() {
         <div className="notice">{academic.formError}</div>
       ) : null}
 
-      {route.page === "dashboard" && !user.roles.includes("estudiante") ? (
+      {route.page === "dashboard" ? (
         <DashboardPage
           courses={academic.courses}
           navigate={navigate}
           students={academic.students}
           teachers={academic.teachers}
+          user={user}
         />
       ) : null}
 
