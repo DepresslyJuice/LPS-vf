@@ -88,12 +88,7 @@ export class UsuariosService {
             estado: 'activo',
         });
 
-        // Buscar rol 'estudiante' y asignarlo
-        const rolEstudiante = await this.rolRepository.findOne({ where: { nombre: 'estudiante' } });
-        if (rolEstudiante) {
-            usuario.roles = [rolEstudiante];
-        }
-
+        // El rol 'estudiante' es asignado automáticamente por un trigger en la base de datos (asignar_rol_user_trigger)
         return await this.usuarioRepository.save(usuario);
     }
 
