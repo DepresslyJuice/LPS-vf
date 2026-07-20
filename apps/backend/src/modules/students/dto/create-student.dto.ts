@@ -10,4 +10,9 @@ export class CreateStudentDto {
   @ApiProperty({ example: "ana.torres@example.com" })
   @IsEmail()
   email!: string;
+
+  @ApiProperty({ example: "contraseña123", minLength: 6, description: "Contraseña para el acceso del estudiante al sistema" })
+  @IsString()
+  @MinLength(6)
+  password!: string;
 }

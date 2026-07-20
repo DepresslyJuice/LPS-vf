@@ -23,9 +23,10 @@ interface StudentsPageProps {
     SetStateAction<{
       name: string;
       email: string;
+      password: string;
     }>
   >;
-  studentForm: { name: string; email: string };
+  studentForm: { name: string; email: string; password: string };
   studentActionState: StudentActionState;
   students: Student[];
   submitState: EntityType | null;
@@ -61,7 +62,7 @@ export function StudentsPage({
                 name: event.target.value,
               }))
             }
-            placeholder="Nombre"
+            placeholder="Nombre completo"
             required
             value={studentForm.name}
           />
@@ -76,6 +77,19 @@ export function StudentsPage({
             required
             type="email"
             value={studentForm.email}
+          />
+          <input
+            minLength={6}
+            onChange={(event) =>
+              setStudentForm((current) => ({
+                ...current,
+                password: event.target.value,
+              }))
+            }
+            placeholder="Contraseña (mínimo 6 caracteres)"
+            required
+            type="password"
+            value={studentForm.password}
           />
           <button disabled={submitState === "student"} type="submit">
             {submitState === "student" ? "Creando..." : "Crear estudiante"}

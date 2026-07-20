@@ -209,4 +209,42 @@ export class CoursesService {
   async deleteQuiz(quizId: string): Promise<void> {
     await this.coursesRepository.deleteQuiz(quizId);
   }
+
+  /**
+   * Retorna los cursos inscritos de un estudiante por email,
+   * incluyendo secciones y recursos de cada curso.
+   */
+  async findStudentCourses(studentEmail: string): Promise<{
+    course: Course;
+    sections: Array<{ section: CourseSection; resources: CourseResource[] }>;
+  }[]> {
+    const student = await this.studentsService.findByEmail(studentEmail);
+    if (!student || student.enrolledCourseIds.length === 0) {
+      return [];
+    }
+
+    const results = await Promise.all(
+      student.enrolledCourseIds.map(async (courseId) => {
+        try {
+          const course = await this.coursesRepository.findById(courseId);
+          if (!course) return null;
+
+          const sections = await this.coursesRepository.findSections(courseId);
+          const sectionsWithResources = await Promise.all(
+            sections.map(async (section) => {
+              const resources = await this.coursesRepository.findResources(section.id);
+              return { section, resources };
+            }),
+          );
+
+          return { course, sections: sectionsWithResources };
+        } catch {
+          return null;
+        }
+      }),
+    );
+
+    return results.filter((r): r is NonNullable<typeof r> => r !== null);
+  }
 }
+

@@ -5,7 +5,7 @@ import type {
   CreateCourseInput,
   CreateCourseResourceInput,
   CreateCourseSectionInput,
-  CreateStudentInput,
+  CreateStudentWithPasswordInput,
   CreateTeacherInput,
   Student,
   Teacher,
@@ -67,7 +67,7 @@ export const api = {
   // Data
   getStudents: () => request<Student[]>("/students"),
   getStudent: (id: string) => request<Student>(`/students/${id}`),
-  createStudent: (input: CreateStudentInput) =>
+  createStudent: (input: CreateStudentWithPasswordInput) =>
     request<Student>("/students", {
       method: "POST",
       body: JSON.stringify(input),
@@ -179,4 +179,13 @@ export const api = {
         throw new Error(`Request failed with status ${response.status}`);
       }
     }),
+  getMyStudentCourses: (email: string) =>
+    request<Array<{
+      course: import("@courses/shared").Course;
+      sections: Array<{
+        section: import("@courses/shared").CourseSection;
+        resources: import("@courses/shared").CourseResource[];
+      }>;
+    }>>(`/courses/student/my-courses?email=${encodeURIComponent(email)}`),
 };
+

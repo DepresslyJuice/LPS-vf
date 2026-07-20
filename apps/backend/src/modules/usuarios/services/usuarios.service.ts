@@ -60,9 +60,44 @@ export class UsuariosService {
             usuario.roles = roles;
         }
 
-        const savedUsuario = await this.usuarioRepository.save(usuario);
+    const savedUsuario = await this.usuarioRepository.save(usuario);
         return this.toResponseDto(await this.findOne(savedUsuario.idUsuario));
     }
+
+    /**
+     * Crea un usuario con el rol 'estudiante' automáticamente.
+     * Usado al registrar un nuevo estudiante desde el módulo de estudiantes.
+     */
+    async createStudentUser(input: { nombre: string; email: string; password: string }): Promise<void> {
+        // Verificar si el email ya existe
+        const existingEmail = await this.usuarioRepository.findOne({
+            where: { email: input.email },
+        });
+        if (existingEmail) {
+            throw new Error('El email ya está registrado');
+        }
+
+        // Hash de la contraseña
+        const passwordHash = await bcrypt.hash(input.password, 10);
+
+        // Crear usuario
+        const usuario = this.usuarioRepository.create({
+            nombre: input.nombre,
+            email: input.email,
+            passwordHash,
+            estado: 'activo',
+        });
+
+        // Buscar rol 'estudiante' y asignarlo
+        const rolEstudiante = await this.rolRepository.findOne({ where: { nombre: 'estudiante' } });
+        if (rolEstudiante) {
+            usuario.roles = [rolEstudiante];
+        }
+
+        await this.usuarioRepository.save(usuario);
+    }
+
+
 
     async findAll(
         query: QueryUsuariosDto,

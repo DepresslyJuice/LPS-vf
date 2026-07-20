@@ -47,7 +47,7 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
   const [courseQuizzes, setCourseQuizzes] = useState<
     Record<string, Quiz[]>
   >({});
-  const [studentForm, setStudentForm] = useState({ name: "", email: "" });
+  const [studentForm, setStudentForm] = useState({ name: "", email: "", password: "" });
   const [editStudentForm, setEditStudentForm] = useState({
     name: "",
     email: "",
@@ -299,10 +299,10 @@ export function useAcademicData({ navigate, route }: UseAcademicDataOptions) {
     try {
       const created = await api.createStudent(studentForm);
       setStudents((current) => [...current, created]);
-      setStudentForm({ name: "", email: "" });
+      setStudentForm({ name: "", email: "", password: "" });
       navigate(buildDetailPath("student", created.id));
-    } catch {
-      setFormError("No se pudo crear el estudiante. Revisa los datos.");
+    } catch (error: any) {
+      setFormError(error?.message ?? "No se pudo crear el estudiante. Revisa los datos.");
     } finally {
       setSubmitState(null);
     }

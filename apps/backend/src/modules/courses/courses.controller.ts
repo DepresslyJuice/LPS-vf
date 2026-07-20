@@ -326,4 +326,15 @@ export class CoursesController {
   async deleteQuiz(@Param("quizId") quizId: string): Promise<void> {
     await this.coursesService.deleteQuiz(quizId);
   }
+
+  @Get("student/my-courses")
+  @ApiOperation({
+    summary: "Cursos del estudiante autenticado",
+    description: "Retorna los cursos inscritos del estudiante identificado por su email, incluyendo secciones y recursos.",
+  })
+  @ApiQuery({ name: "email", description: "Email del estudiante", example: "ana.torres@example.com" })
+  @ApiOkResponse({ description: "Lista de cursos con secciones y recursos" })
+  async getStudentCourses(@Query("email") email: string) {
+    return this.coursesService.findStudentCourses(email);
+  }
 }

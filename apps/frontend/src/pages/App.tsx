@@ -9,12 +9,18 @@ import { DetailPage } from "./DetailPage";
 import { StudentsPage } from "./StudentsPage";
 import { TeachersPage } from "./TeachersPage";
 import { LoginPage } from "./LoginPage";
+import { StudentCoursesPage } from "./StudentCoursesPage";
 import { useAuth } from "../hooks/AuthProvider";
 
 export function App() {
   const { isActive, navigate, route } = useRoute();
   const academic = useAcademicData({ navigate, route });
   const { user, loading } = useAuth();
+  const isStudent = (user?.roles.includes("estudiante")
+    && !user?.roles.includes("admin")
+    && !user?.roles.includes("tutor")) ?? false;
+  const isTutor = (user?.roles.includes("tutor") && !user?.roles.includes("admin")) ?? false;
+  const canSeeTeachers = !isStudent && !isTutor;
 
   if (loading) {
     return (
@@ -29,7 +35,7 @@ export function App() {
   }
 
   // Si es estudiante y quiere ver el dashboard, forzar a cursos
-  if (route.page === "dashboard" && user.roles.includes("estudiante")) {
+  if (route.page === "dashboard" && isStudent) {
     navigate("/courses");
     return null;
   }
@@ -37,7 +43,7 @@ export function App() {
   return (
     <main className="appShell">
       <AppHeader loadState={academic.loadState} />
-      <AppNav isActive={isActive} navigate={navigate} />
+      <AppNav isActive={isActive} navigate={navigate} userRoles={user?.roles ?? []} />
 
       {academic.loadState === "error" ? (
         <div className="notice">
@@ -60,6 +66,9 @@ export function App() {
       ) : null}
 
       {route.page === "courses" ? (
+        isStudent ? (
+          <StudentCoursesPage />
+        ) : (
         <CoursesPage
           canCreateCourse={academic.canCreateCourse}
           cancelEditingCourse={academic.cancelEditingCourse}
@@ -82,6 +91,7 @@ export function App() {
           teacherById={academic.teacherById}
           teachers={academic.teachers}
         />
+        )
       ) : null}
 
       {route.page === "students" ? (
@@ -104,7 +114,7 @@ export function App() {
         />
       ) : null}
 
-      {route.page === "teachers" ? (
+      {route.page === "teachers" && canSeeTeachers ? (
         <TeachersPage
           handleCreateTeacher={academic.handleCreateTeacher}
           isLoading={academic.isLoading}
@@ -114,6 +124,12 @@ export function App() {
           teacherForm={academic.teacherForm}
           teachers={academic.teachers}
         />
+      ) : route.page === "teachers" && !canSeeTeachers ? (
+        <section className="pageGrid">
+          <Section title="Acceso restringido">
+            <div className="emptyDetail">No tienes permisos para ver esta sección.</div>
+          </Section>
+        </section>
       ) : null}
 
       {route.page === "detail" ? (

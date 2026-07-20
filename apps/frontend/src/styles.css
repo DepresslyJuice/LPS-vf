@@ -772,3 +772,124 @@ dd {
   box-shadow: none;
 }
 
+/* ── Portal Estudiantil ──────────────────────────────────────────────── */
+.studentCourseCard {
+  transition: box-shadow 0.2s ease;
+}
+.studentCourseCard:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.studentCourseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.studentCourseInfo {
+  flex: 1;
+  min-width: 0;
+}
+.studentExpandBtn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 130px;
+  padding: 0 14px;
+  font-size: 0.85rem;
+}
+.studentCourseContent {
+  margin-top: 16px;
+  border-top: 1px solid #e9efeb;
+  padding-top: 14px;
+  display: grid;
+  gap: 14px;
+  animation: fadeIn 0.2s ease-out;
+}
+.studentSection {
+  border: 1px solid #e2e9e5;
+  border-radius: 8px;
+  padding: 14px;
+  background: #f9fbfa;
+}
+.studentSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.studentSectionNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1c6f57;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.studentSectionHeader h4 {
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  color: #172026;
+}
+.studentResourceList {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+.studentResource {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e9efeb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  transition: border-color 0.15s ease;
+}
+.studentResource:hover {
+  border-color: #1c6f57;
+}
+.resourceTypeTag {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.studentResourceBody {
+  min-width: 0;
+  flex: 1;
+}
+.studentResourceBody strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #172026;
+  margin-bottom: 4px;
+}
+.resourceLink {
+  display: block;
+  color: #1c6f57;
+  font-size: 0.82rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color 0.15s ease;
+}
+.resourceLink:hover {
+  color: #124837;
+  text-decoration: underline;
+}
+.resourceContent {
+  color: #51615c;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .studentCourseHeader {
+    flex-direction: column;
+  }
+  .studentExpandBtn {
+    width: 100%;
+  }
+}

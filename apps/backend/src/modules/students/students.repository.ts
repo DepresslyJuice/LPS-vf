@@ -32,6 +32,20 @@ export class StudentsRepository {
     return data ?? undefined;
   }
 
+  async findByEmail(email: string): Promise<Student | undefined> {
+    const { data, error } = await this.supabase
+      .from<Student>("students")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? undefined;
+  }
+
   async create(input: CreateStudentInput): Promise<Student> {
     const { data, error } = await this.supabase
       .from<Student>("students")

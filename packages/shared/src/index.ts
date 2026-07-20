@@ -43,6 +43,7 @@ export interface CourseResource {
 }
 
 export type CreateStudentInput = Omit<Student, "id" | "enrolledCourseIds">;
+export type CreateStudentWithPasswordInput = CreateStudentInput & { password: string };
 export type UpdateStudentInput = Partial<CreateStudentInput>;
 export type CreateTeacherInput = Omit<Teacher, "id">;
 export type CreateCourseInput = Omit<Course, "id">;
