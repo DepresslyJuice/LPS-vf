@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException } from "@nestjs/common";
 import { CreateStudentWithPasswordInput, Student, UpdateStudentInput } from "@courses/shared";
 import { StudentsRepository } from "./students.repository";
 import { UsuariosService } from "@/modules/usuarios/services/usuarios.service";
@@ -29,29 +29,35 @@ export class StudentsService {
   }
 
   async create(input: CreateStudentWithPasswordInput): Promise<Student> {
-    // 1. Crear estudiante en Supabase (core asset)
-    const { password, ...studentData } = input;
-    const student = await this.studentsRepository.create(studentData);
-
-    // 2. Crear usuario de autenticación con rol 'estudiante'
+    const { password, ...studentDataOriginal } = input;
+    
+    // 1. Crear usuario de autenticación con rol 'estudiante'
+    let usuario;
     try {
-      await this.usuariosService.createStudentUser({
-        nombre: student.name,
-        email: student.email,
+      usuario = await this.usuariosService.createStudentUser({
+        nombre: input.name,
+        email: input.email,
         password,
       });
     } catch (error: any) {
-      // Si el email ya tiene usuario no es error crítico
-      if (!error?.message?.includes('ya está registrado')) {
-        // Revertir creación del estudiante para mantener consistencia
-        await this.studentsRepository.delete(student.id).catch(() => {});
-        throw new InternalServerErrorException(
-          `Estudiante creado pero no se pudo crear el usuario: ${error?.message}`,
-        );
+      if (error?.message?.includes('ya está registrado')) {
+        throw new BadRequestException('El email ya está registrado en el sistema.');
       }
+      throw error;
     }
 
-    return student;
+    // 2. Crear estudiante en Supabase con el ID del usuario
+    try {
+      const studentData = { ...studentDataOriginal, usuarioId: usuario.idUsuario };
+      const student = await this.studentsRepository.create(studentData);
+      return student;
+    } catch (error: any) {
+      // Revertir creación de usuario si falla Supabase
+      await this.usuariosService.remove(usuario.idUsuario).catch(() => {});
+      throw new InternalServerErrorException(
+        `Error creando el estudiante en la base de datos principal: ${error?.message}`,
+      );
+    }
   }
 
   async update(id: string, input: UpdateStudentInput): Promise<Student> {
@@ -65,8 +71,11 @@ export class StudentsService {
   }
 
   async delete(id: string): Promise<void> {
-    await this.findById(id);
+    const student = await this.findById(id);
     await this.studentsRepository.delete(id);
+    if (student.usuarioId) {
+      await this.usuariosService.remove(student.usuarioId).catch(() => {});
+    }
   }
 
   async updateEnrolledCourseIds(

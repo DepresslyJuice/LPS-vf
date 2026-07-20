@@ -21,6 +21,7 @@ export function App() {
     && !user?.roles.includes("tutor")) ?? false;
   const isTutor = (user?.roles.includes("tutor") && !user?.roles.includes("admin")) ?? false;
   const canSeeTeachers = !isStudent && !isTutor;
+  const canSeeStudents = !isStudent;
 
   if (loading) {
     return (
@@ -94,7 +95,7 @@ export function App() {
         )
       ) : null}
 
-      {route.page === "students" ? (
+      {route.page === "students" && canSeeStudents ? (
         <StudentsPage
           cancelEditingStudent={academic.cancelEditingStudent}
           editStudentForm={academic.editStudentForm}
@@ -112,6 +113,12 @@ export function App() {
           submitState={academic.submitState}
           startEditingStudent={academic.startEditingStudent}
         />
+      ) : route.page === "students" && !canSeeStudents ? (
+        <section className="pageGrid">
+          <Section title="Acceso restringido">
+            <div className="emptyDetail">No tienes permisos para ver esta sección.</div>
+          </Section>
+        </section>
       ) : null}
 
       {route.page === "teachers" && canSeeTeachers ? (

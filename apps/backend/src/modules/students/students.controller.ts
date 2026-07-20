@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 import { Student } from "@courses/shared";
 import {
@@ -19,21 +20,26 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiBearerAuth,
 } from "@nestjs/swagger";
 import { CreateStudentDto } from "./dto/create-student.dto";
 import { StudentResponseDto } from "./dto/student-response.dto";
 import { UpdateStudentDto } from "./dto/update-student.dto";
 import { StudentsService } from "./students.service";
 
-import { Public } from "@/modules/auth/decorators/public.decorator";
+import { JwtAuthGuard } from "@/modules/auth/guards/jwt-auth.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles.guard";
+import { Roles } from "@/modules/auth/decorators/roles.decorator";
 
 @ApiTags("students")
-@Public()
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("students")
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Get()
+  @Roles("admin", "tutor")
   @ApiOperation({
     summary: "Listar estudiantes",
     description: "Devuelve todos los estudiantes registrados.",
@@ -44,6 +50,7 @@ export class StudentsController {
   }
 
   @Get(":id")
+  @Roles("admin", "tutor", "estudiante")
   @ApiOperation({
     summary: "Obtener estudiante por id",
     description: "Devuelve el detalle individual de un estudiante.",
@@ -56,6 +63,7 @@ export class StudentsController {
   }
 
   @Post()
+  @Roles("admin", "tutor")
   @ApiOperation({
     summary: "Crear estudiante",
     description: "Registra un estudiante nuevo con nombre y correo.",
@@ -68,6 +76,7 @@ export class StudentsController {
   }
 
   @Patch(":id")
+  @Roles("admin", "tutor")
   @ApiOperation({
     summary: "Actualizar estudiante",
     description: "Actualiza parcialmente un estudiante existente.",
@@ -85,6 +94,7 @@ export class StudentsController {
   }
 
   @Delete(":id")
+  @Roles("admin", "tutor")
   @HttpCode(204)
   @ApiOperation({
     summary: "Eliminar estudiante",

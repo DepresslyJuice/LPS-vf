@@ -68,7 +68,7 @@ export class UsuariosService {
      * Crea un usuario con el rol 'estudiante' automáticamente.
      * Usado al registrar un nuevo estudiante desde el módulo de estudiantes.
      */
-    async createStudentUser(input: { nombre: string; email: string; password: string }): Promise<void> {
+    async createStudentUser(input: { nombre: string; email: string; password: string }): Promise<Usuario> {
         // Verificar si el email ya existe
         const existingEmail = await this.usuarioRepository.findOne({
             where: { email: input.email },
@@ -94,7 +94,7 @@ export class UsuariosService {
             usuario.roles = [rolEstudiante];
         }
 
-        await this.usuarioRepository.save(usuario);
+        return await this.usuarioRepository.save(usuario);
     }
 
 

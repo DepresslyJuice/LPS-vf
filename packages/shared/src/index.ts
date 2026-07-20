@@ -7,6 +7,7 @@ export interface Student {
   name: string;
   email: string;
   enrolledCourseIds: EntityId[];
+  usuarioId?: number;
 }
 
 export interface Teacher {
